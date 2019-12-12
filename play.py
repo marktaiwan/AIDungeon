@@ -227,14 +227,14 @@ def play_aidungeon_2():
                 console_print(result)
 
             elif action == "print":
-                line_break = input("Format output into fixed width?\n(y/n, or enter an integer for custom width)\n> ")
+                line_break = input("Format output into fixed width? (y/n, or enter an integer for custom width)\n> ")
                 print("\nPRINTING\n")
                 if line_break == "n":
                     print(str(story_manager.story))
-                elif line_break == "y":
-                    console_print(str(story_manager.story))
                 elif line_break.isdigit():
                     console_print(str(story_manager.story), int(line_break))
+                else:
+                    console_print(str(story_manager.story))
 
             elif action == "stats":
                 text =    "nosaving is set to:    " + str(not upload_story)
