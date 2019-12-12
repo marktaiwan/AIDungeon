@@ -79,31 +79,36 @@ def select_game():
 
 def instructions():
     text = "\nAI Dungeon 2 Instructions:"
-    text += '\n Enter actions starting with a verb ex. "go to the tavern" or "attack the orc."'
-    text += '\n To speak enter \'say "(thing you want to say)"\' or just "(thing you want to say)" '
-    text += '\n You can also objectively influence the story by prefacing your command with "!" (e.g. "!A dragon swoops in and eats Sir Theo.")'
-    text += "\n\nThe following commands can be entered for any action: "
-    text += '\n  "revert"         Reverts the last action allowing you to pick a different action.'
-    text += '\n  "retry"          Reverts the last action and tries again with the same action.'
-    text += '\n  "quit"           Quits the game and saves'
-    text += '\n  "restart"        Starts a new game and saves your current one'
-    text += '\n  "autosave"       Toggle autosave on and off. Default is off'
-    text += '\n  "save"           Makes a new save of your game and gives you the save ID'
-    text += '\n  "load"           Asks for a save ID and loads the game if the ID is valid'
-    text += '\n  "print"          Prints a transcript of your adventure (without extra'
-    text += '\n                    newline formatting)'
-    text += '\n  "help"           Prints these instructions again'
-    text += '\n  "stats"          Display AI parameters'
-    text += '\n  "toggle censor"  Turn censoring off or on.'
-    text += '\n  "toggle ping"    Play a ping sound when the AI responds'
-    text += '\n  "set timeout ##" to set a timeout for the AI to respond.'
-    text += '\n  "set memory #"   Changes the AI\'s memory (How far back'
+    text += '\n Enter actions starting with a verb ex. "go to the tavern" or "attack the orc"'
+    text += '\n'
+    text += '\n To speak enter \'say "(thing you want to say)"\''
+    text += '\n or just "(thing you want to say)"'
+    text += '\n'
+    text += '\n If you want something to happen or be done by someone else, enter '
+    text += '\n \'!(thing you want to happen)'
+    text += '\n ex. "!A dragon swoops down and eats Sir Theo."'
+    text += '\n'
+    text += "\nThe following commands can be entered for any action: "
+    text += '\n  "revert"          Reverts the last action allowing you to pick a different action.'
+    text += '\n  "retry"           Reverts the last action and tries again with the same action.'
+    text += '\n  "quit"            Quits the game and saves'
+    text += '\n  "restart"         Starts a new game and saves your current one'
+    text += '\n  "autosave"        Toggle autosave on and off. Default is off'
+    text += '\n  "save"            Makes a new save of your game and gives you the save ID'
+    text += '\n  "load"            Asks for a save ID and loads the game if the ID is valid'
+    text += '\n  "print"           Prints a transcript of your adventure'
+    text += '\n  "help"            Prints these instructions again'
+    text += '\n  "stats"           Display AI parameters'
+    text += '\n  "toggle censor"   Turn censoring off or on.'
+    text += '\n  "toggle ping"     Play a ping sound when the AI responds'
+    text += '\n  "set timeout ##"  to set a timeout for the AI to respond.'
+    text += '\n  "set memory #"    Changes the AI\'s memory (How far back'
     text += '\n                    the conversation it looks). Default is 20.'
-    text += '\n  "set temp #"     Changes the AI\'s temperature (higher temperature = less focused).'
+    text += '\n  "set temp #"      Changes the AI\'s temperature (higher temperature = less focused).'
     text += '\n                    Default is 0.4.'
-    text += '\n  "set top_k #"    Changes the AI\'s top_k'
+    text += '\n  "set top_k #"     Changes the AI\'s top_k'
     text += '\n                    (higher top_k = more wording deviation). Default is 80.'
-    text += '\n  "remember XXX"   Commit something important to the AI\'s memory for that session.'
+    text += '\n  "remember XXX"    Commit something important to the AI\'s memory for that session.'
     return text
 
 
@@ -139,6 +144,12 @@ def play_aidungeon_2():
         if splash_choice == "new":
             print("\n\n")
             context, prompt = select_game()
+            change_config = input("Would you like to enter a new temp and top_k now? (default: 0.4, 80) (y/N) ")
+            if change_config.lower() == "y":
+                story_manager.generator.change_temp(float(input("Enter a new temp (default 0.4): ")))
+                story_manager.generator.change_topk(int(input("Enter a new top_k (default 80): ")))
+                console_print("Please wait while the AI model is regenerated...")
+                story_manager.generator.gen_output()
             console_print(instructions())
             print("\nGenerating story...")
             story_manager.generator.generate_num = 120
@@ -271,19 +282,23 @@ def play_aidungeon_2():
             elif len(action.split(" ")) == 3 and action.startswith('set temp'):
 
                 try:
-                    story_manager.generator.temp = float(action.split(" ")[2])
+                    console_print("Regenerating model, please wait...")
+                    story_manager.generator.change_temp(float(action.split(" ")[2]))
+                    story_manager.generator.gen_output()
                     console_print("Set temp to {}".format(story_manager.generator.temp))
                 except:
-                    console_print("Failed to set temperature. Example usage: set temp 0.2")
+                    console_print("Failed to set temperature. Example usage: set temp 0.4")
                     continue
 
             elif len(action.split(" ")) == 3 and action.startswith('set top_k'):
 
                 try:
-                    story_manager.generator.top_k = int(action.split(" ")[2])
+                    console_print("Regenerating model, please wait...")
+                    story_manager.generator.change_topk(int(action.split(" ")[2]))
+                    story_manager.generator.gen_output()
                     console_print("Set top_k to {}".format(story_manager.generator.top_k))
                 except:
-                    console_print("Failed to set top_k. Example usage: set top_k 20")
+                    console_print("Failed to set top_k. Example usage: set top_k 80")
                     continue
                 
             elif len(action.split(" ")) > 1 and action.split(" ")[0] == 'remember':
@@ -322,14 +337,11 @@ def play_aidungeon_2():
             else:
                 if action == "":
                     action = ""
-
-                #elif action[0] == '"':
-                #    action = "You say " + action
                     
                 elif action[0] == '!':
                     action = "\n" + action[1:].replace("\\n", "\n") + "\n"
 
-                else:
+                elif action[0] != '"':
                     action = action.strip()
                     if "You" not in action[:6] and "I" not in action[:6]:
                         action = "You " + action
