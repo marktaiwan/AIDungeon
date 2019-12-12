@@ -81,20 +81,25 @@ def instructions():
     text = "\nAI Dungeon 2 Instructions:"
     text += '\n Enter actions starting with a verb ex. "go to the tavern" or "attack the orc."'
     text += '\n To speak enter \'say "(thing you want to say)"\' or just "(thing you want to say)" '
+    text += '\n You can also objectively influence the story by prefacing your command with "!" (e.g. "!A dragon swoops in and eats Sir Theo.")'
     text += "\n\nThe following commands can be entered for any action: "
-    text += '\n  "revert"   Reverts the last action allowing you to pick a different action.'
-    text += '\n  "retry"    Reverts the last action and tries again with the same action.'
-    text += '\n  "quit"     Quits the game and saves'
-    text += '\n  "restart"  Starts a new game and saves your current one'
-    text += '\n  "save"     Makes a new save of your game and gives you the save ID'
-    text += '\n  "load"     Asks for a save ID and loads the game if the ID is valid'
-    text += '\n  "print"    Prints a transcript of your adventure (without extra newline formatting)'
-    text += '\n  "help"     Prints these instructions again'
-    text += '\n  "censor off/on" to turn censoring off or on.'
-    text += '\n  "ping off/on" to turn playing a ping sound when the AI responds off or on. (not compatible with Colab)'
-    text += '\n  "infto ##" to set a timeout for the AI to respond.'
-    text += '\n  "temp #"   Changes the AI\'s temperature (higher temperature = less focused). Default is 4.'
-    text += '\n  "remember XXX" to commit something important to the AI\'s memory for that session.'
+    text += '\n  "revert"         Reverts the last action allowing you to pick a different action.'
+    text += '\n  "retry"          Reverts the last action and tries again with the same action.'
+    text += '\n  "quit"           Quits the game and saves'
+    text += '\n  "restart"        Starts a new game and saves your current one'
+    text += '\n  "autosave"       Toggle autosave on and off. Default is off'
+    text += '\n  "save"           Makes a new save of your game and gives you the save ID'
+    text += '\n  "load"           Asks for a save ID and loads the game if the ID is valid'
+    text += '\n  "print"          Prints a transcript of your adventure (without extra newline formatting)'
+    text += '\n  "help"           Prints these instructions again'
+    text += '\n  "stats"          Display AI parameters'
+    text += '\n  "toggle censor"  Turn censoring off or on.'
+    text += '\n  "toggle ping"    Play a ping sound when the AI responds'
+    text += '\n  "set timeout ##" to set a timeout for the AI to respond.'
+    text += '\n  "set memory #"   Changes the AI\'s memory (How far back the conversation it looks). Default is 20.'
+    text += '\n  "set temp #"     Changes the AI\'s temperature (higher temperature = less focused). Default is 0.4.'
+    text += '\n  "set top_k #"    Changes the AI\'s top_k (higher top_k = more wording deviation). Default is 40.'
+    text += '\n  "remember XXX"   Commit something important to the AI\'s memory for that session.'
     return text
 
 
@@ -107,7 +112,8 @@ def play_aidungeon_2():
     )
 
     upload_story = True
-    ping = False
+    ping = True
+    autosave = False
 
     print("\nInitializing AI Dungeon! (This might take a few minutes)\n")
     generator = GPT2Generator()
@@ -146,18 +152,22 @@ def play_aidungeon_2():
             print(result)
 
         while True:
+            if autosave:
+                story_manager.story.save_to_storage(overwrite=True)
+
             sys.stdin.flush()
             action = input("> ")
             if action == "restart":
-                rating = input("Please rate the story quality from 1-10: ")
-                rating_float = float(rating)
-                story_manager.story.rating = rating_float
+                # rating = input("Please rate the story quality from 1-10: ")
+                # rating_float = float(rating)
+                # story_manager.story.rating = rating_float
                 break
 
             elif action == "quit":
-                rating = input("Please rate the story quality from 1-10: ")
-                rating_float = float(rating)
-                story_manager.story.rating = rating_float
+                # rating = input("Please rate the story quality from 1-10: ")
+                # rating_float = float(rating)
+                # story_manager.story.rating = rating_float
+                if not autosave: story_manager.story.save_to_storage(overwrite=True)
                 exit()
 
             elif action == "nosaving":
@@ -168,26 +178,20 @@ def play_aidungeon_2():
             elif action == "help":
                 console_print(instructions())
 
-            elif action == "censor off":
-                generator.censor = False
-
-            elif action == "censor on":
-                generator.censor = True
+            elif action == "toggle censor":
+                generator.censor = not generator.censor
+                console_print("Censor is now turned" + ("on" if generator.censor else "off"))
                 
-            elif action == "ping off":
-                ping = False
-
-            elif action == "ping on":
-                ping = True
+            elif action == "toggle ping":
+                ping = not ping
+                console_print("Ping is now turned" + ("on" if ping else "off"))
 
             elif action == "save":
                 if upload_story:
-                    id = story_manager.story.save_to_storage()
-                    console_print("Game saved.")
-                    console_print(
-                        "To load the game, type 'load' and enter the following ID: "
-                        + id
-                    )
+                    print("Save to new file, or overwrite the current file?")
+                    print("0) Save as new\n1) Save to current file\n")
+                    choice = get_num_options(2)
+                    story_manager.story.save_to_storage(overwrite=(choice == 1))
                 else:
                     console_print("Saving has been turned off. Cannot save.")
 
@@ -204,8 +208,25 @@ def play_aidungeon_2():
                 console_print(result)
 
             elif action == "print":
+                line_break = input("Format output into fixed width?\n(y/n, or enter an integer for custom width)\n> ")
                 print("\nPRINTING\n")
-                print(str(story_manager.story))
+                if line_break == "n":
+                    print(str(story_manager.story))
+                elif line_break == "y":
+                    console_print(str(story_manager.story))
+                elif line_break.isdigit():
+                    console_print(str(story_manager.story), int(line_break))
+
+            elif action == "stats":
+                text = "nosaving is set to:       " + str(not upload_story)
+                text += "\nautosave is set to:    " + str(autosave)
+                text += "\nping is set to:        " + str(ping)
+                text += "\ncensor is set to:      " + str(censor)
+                text += "\n"
+                text += "\nmemory is set to:      " + str(story_manager.story.memory)
+                text += "\ntemperature is set to: " + str(story_manager.generator.temp)
+                text += "\ntop_k is set to:       " + str(story_manager.generator.top_k)
+                print(text)
 
             elif action == "revert":
 
@@ -222,22 +243,39 @@ def play_aidungeon_2():
                     console_print(story_manager.story.story_start)
                 continue
                 
-            elif len(action.split(" ")) == 2 and action.split(" ")[0] == 'infto':
+            elif len(action.split(" ")) == 2 and action.split(" ")[0] == 'set timeout':
 
                 try:
                     story_manager.inference_timeout = int(action.split(" ")[1])
                     console_print("Set timeout to {}".format(story_manager.inference_timeout))
                 except:
-                    console_print("Failed to set timeout. Example usage: infto 30")
+                    console_print("Failed to set timeout. Example usage: set timeout 30")
                     continue
-                
-            elif len(action.split(" ")) == 2 and action.split(" ")[0] == 'temp':
+            
+            elif len(action.split(" ")) == 2 and action.split(" ")[0] == 'set memory':
+                try:
+                    story_manager.story.memory = int(action.split(" ")[1])
+                    console_print("Set memory to {}".format(story_manager.story.memory))
+                except:
+                    console_print("Failed to set temperature. Example usage: set memory 20")
+                    continue
+
+            elif len(action.split(" ")) == 2 and action.split(" ")[0] == 'set temp':
 
                 try:
-                    story_manager.generator.temp = float(action.split(" ")[1])/10
+                    story_manager.generator.temp = float(action.split(" ")[1])
                     console_print("Set temp to {}".format(story_manager.generator.temp))
                 except:
-                    console_print("Failed to set temperature. Example usage: temp 4")
+                    console_print("Failed to set temperature. Example usage: set temp 0.2")
+                    continue
+
+            elif len(action.split(" ")) == 2 and action.split(" ")[0] == 'set top_k':
+
+                try:
+                    story_manager.generator.top_k = int(action.split(" ")[1])
+                    console_print("Set top_k to {}".format(story_manager.generator.top_k))
+                except:
+                    console_print("Failed to set top_k. Example usage: set top_k 20")
                     continue
                 
             elif len(action.split(" ")) > 1 and action.split(" ")[0] == 'remember':
@@ -263,7 +301,7 @@ def play_aidungeon_2():
                         console_print(last_action)
                         console_print(story_manager.story.results[-1])
                     except FunctionTimedOut:
-                        console_print("That input caused the model to hang (timeout is {}, use infto ## command to change)".format(story_manager.inference_timeout))
+                        console_print("That input caused the model to hang (timeout is {}, use set timeout ## command to change)".format(story_manager.inference_timeout))
                         continue
                 except NameError:
                     pass
@@ -302,7 +340,7 @@ def play_aidungeon_2():
                 try:
                     result = "\n" + story_manager.act_with_timeout(action)
                 except FunctionTimedOut:
-                    console_print("That input caused the model to hang (timeout is {}, use infto ## command to change)".format(story_manager.inference_timeout))
+                    console_print("That input caused the model to hang (timeout is {}, use set timeout ## command to change)".format(story_manager.inference_timeout))
                     continue
                 if len(story_manager.story.results) >= 2:
                     similarity = get_similarity(

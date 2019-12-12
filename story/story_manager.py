@@ -33,13 +33,13 @@ class Story:
         self.game_state = game_state
         self.memory = 20
 
-    def __del__(self):
-        if self.upload_story:
-            self.save_to_storage()
-            console_print("Game saved.")
-            console_print(
-                "To load the game, type 'load' and enter the following ID: " + self.uuid
-            )
+    # def __del__(self):
+    #     if self.upload_story:
+    #         self.save_to_storage()
+    #         console_print("Game saved.")
+    #         console_print(
+    #             "To load the game, type 'load' and enter the following ID: " + self.uuid
+    #         )
 
     def init_from_dict(self, story_dict):
         self.story_start = story_dict["story_start"]
@@ -120,28 +120,27 @@ class Story:
             game = json.load(fp)
         self.init_from_dict(game)
 
-    def save_to_storage(self):
-        self.uuid = str(uuid.uuid1())
+    def save_to_storage(self, overwrite=False):
+        if self.uuid == None:
+            self.uuid = str(uuid.uuid1())
+        ref = self if overwrite else copy.copy(self)
 
-        story_json = self.to_json()
-        file_name = "story" + str(self.uuid) + ".json"
+        if overwrite == False:
+            ref.uuid = str(uuid.uuid1())
+
+        story_json = ref.to_json()
+        file_name = str(ref.uuid) + ".json"
         f = open(os.path.join("saves", file_name), "w")
         f.write(story_json)
         f.close()
 
-        FNULL = open(os.devnull, "w")
-        '''p = Popen(
-            ["gsutil", "cp", file_name, "gs://aidungeonstories"],
-            stdout=FNULL,
-            stderr=subprocess.STDOUT,
-        )'''
-        return self.uuid
+        console_print("Game saved.")
+        console_print("To load the game, type 'load' and enter the following ID: " + str(ref.uuid))
+        return ref.uuid
 
     def load_from_storage(self, story_id):
 
-        file_name = os.path.join("saves", "story" + story_id + ".json")
-        #cmd = "gsutil cp gs://aidungeonstories/" + file_name + " ."
-        #os.system(cmd)
+        file_name = os.path.join("saves", story_id + ".json")
         exists = os.path.isfile(file_name)
 
         if exists:
@@ -173,11 +172,9 @@ class StoryManager:
         return self.story
 
     def load_new_story(self, story_id):
-        file_name = os.path.join("saves","story" + story_id + ".json")
-        #cmd = "gsutil cp gs://aidungeonstories/" + file_name + " ."
-        #os.system(cmd)
-        exists = os.path.isfile(file_name)
+        file_name = os.path.join("saves", story_id + ".json")
 
+        exists = os.path.isfile(file_name)
         if exists:
             with open(file_name, "r") as fp:
                 game = json.load(fp)
