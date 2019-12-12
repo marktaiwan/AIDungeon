@@ -90,15 +90,19 @@ def instructions():
     text += '\n  "autosave"       Toggle autosave on and off. Default is off'
     text += '\n  "save"           Makes a new save of your game and gives you the save ID'
     text += '\n  "load"           Asks for a save ID and loads the game if the ID is valid'
-    text += '\n  "print"          Prints a transcript of your adventure (without extra newline formatting)'
+    text += '\n  "print"          Prints a transcript of your adventure (without extra'
+    text += '\n                    newline formatting)'
     text += '\n  "help"           Prints these instructions again'
     text += '\n  "stats"          Display AI parameters'
     text += '\n  "toggle censor"  Turn censoring off or on.'
     text += '\n  "toggle ping"    Play a ping sound when the AI responds'
     text += '\n  "set timeout ##" to set a timeout for the AI to respond.'
-    text += '\n  "set memory #"   Changes the AI\'s memory (How far back the conversation it looks). Default is 20.'
-    text += '\n  "set temp #"     Changes the AI\'s temperature (higher temperature = less focused). Default is 0.4.'
-    text += '\n  "set top_k #"    Changes the AI\'s top_k (higher top_k = more wording deviation). Default is 40.'
+    text += '\n  "set memory #"   Changes the AI\'s memory (How far back'
+    text += '\n                    the conversation it looks). Default is 20.'
+    text += '\n  "set temp #"     Changes the AI\'s temperature (higher temperature = less focused).'
+    text += '\n                    Default is 0.4.'
+    text += '\n  "set top_k #"    Changes the AI\'s top_k'
+    text += '\n                    (higher top_k = more wording deviation). Default is 80.'
     text += '\n  "remember XXX"   Commit something important to the AI\'s memory for that session.'
     return text
 
@@ -153,7 +157,7 @@ def play_aidungeon_2():
 
         while True:
             if autosave:
-                story_manager.story.save_to_storage(overwrite=True)
+                story_manager.story.save_to_storage(overwrite=True, silent=True)
 
             sys.stdin.flush()
             action = input("> ")
@@ -178,13 +182,17 @@ def play_aidungeon_2():
             elif action == "help":
                 console_print(instructions())
 
+            elif action == "autosave":
+                autosave = not autosave
+                console_print("Autosaving is now turned " + ("on" if autosave else "off"))
+
             elif action == "toggle censor":
                 generator.censor = not generator.censor
-                console_print("Censor is now turned" + ("on" if generator.censor else "off"))
+                console_print("Censor is now turned " + ("on" if generator.censor else "off"))
                 
             elif action == "toggle ping":
                 ping = not ping
-                console_print("Ping is now turned" + ("on" if ping else "off"))
+                console_print("Ping is now turned " + ("on" if ping else "off"))
 
             elif action == "save":
                 if upload_story:
@@ -218,10 +226,10 @@ def play_aidungeon_2():
                     console_print(str(story_manager.story), int(line_break))
 
             elif action == "stats":
-                text = "nosaving is set to:       " + str(not upload_story)
+                text =    "nosaving is set to:    " + str(not upload_story)
                 text += "\nautosave is set to:    " + str(autosave)
                 text += "\nping is set to:        " + str(ping)
-                text += "\ncensor is set to:      " + str(censor)
+                text += "\ncensor is set to:      " + str(generator.censor)
                 text += "\n"
                 text += "\nmemory is set to:      " + str(story_manager.story.memory)
                 text += "\ntemperature is set to: " + str(story_manager.generator.temp)
@@ -243,36 +251,36 @@ def play_aidungeon_2():
                     console_print(story_manager.story.story_start)
                 continue
                 
-            elif len(action.split(" ")) == 2 and action.split(" ")[0] == 'set timeout':
+            elif len(action.split(" ")) == 3 and action.startswith('set timeout'):
 
                 try:
-                    story_manager.inference_timeout = int(action.split(" ")[1])
+                    story_manager.inference_timeout = int(action.split(" ")[2])
                     console_print("Set timeout to {}".format(story_manager.inference_timeout))
                 except:
                     console_print("Failed to set timeout. Example usage: set timeout 30")
                     continue
             
-            elif len(action.split(" ")) == 2 and action.split(" ")[0] == 'set memory':
+            elif len(action.split(" ")) == 3 and action.startswith('set memory'):
                 try:
-                    story_manager.story.memory = int(action.split(" ")[1])
+                    story_manager.story.memory = int(action.split(" ")[2])
                     console_print("Set memory to {}".format(story_manager.story.memory))
                 except:
                     console_print("Failed to set temperature. Example usage: set memory 20")
                     continue
 
-            elif len(action.split(" ")) == 2 and action.split(" ")[0] == 'set temp':
+            elif len(action.split(" ")) == 3 and action.startswith('set temp'):
 
                 try:
-                    story_manager.generator.temp = float(action.split(" ")[1])
+                    story_manager.generator.temp = float(action.split(" ")[2])
                     console_print("Set temp to {}".format(story_manager.generator.temp))
                 except:
                     console_print("Failed to set temperature. Example usage: set temp 0.2")
                     continue
 
-            elif len(action.split(" ")) == 2 and action.split(" ")[0] == 'set top_k':
+            elif len(action.split(" ")) == 3 and action.startswith('set top_k'):
 
                 try:
-                    story_manager.generator.top_k = int(action.split(" ")[1])
+                    story_manager.generator.top_k = int(action.split(" ")[2])
                     console_print("Set top_k to {}".format(story_manager.generator.top_k))
                 except:
                     console_print("Failed to set top_k. Example usage: set top_k 20")
@@ -292,6 +300,7 @@ def play_aidungeon_2():
                     console_print("There is nothing to retry.")
                     continue
 
+                console_print("Retrying last action...")
                 last_action = story_manager.story.actions.pop()
                 last_result = story_manager.story.results.pop()
 
@@ -306,7 +315,7 @@ def play_aidungeon_2():
                 except NameError:
                     pass
                 if ping:
-                    playsound('ping.mp3')
+                    playsound('ping.mp3', block=False)
 
                 continue
 
@@ -376,7 +385,7 @@ def play_aidungeon_2():
                 else:
                     console_print(result)
                 if ping:
-                    playsound('ping.mp3')
+                    playsound('ping.mp3', block=False)
                 story_manager.generator.generate_num = story_manager.generator.default_gen_num
 
 

@@ -120,7 +120,7 @@ class Story:
             game = json.load(fp)
         self.init_from_dict(game)
 
-    def save_to_storage(self, overwrite=False):
+    def save_to_storage(self, overwrite=False, silent=False):
         if self.uuid == None:
             self.uuid = str(uuid.uuid1())
         ref = self if overwrite else copy.copy(self)
@@ -134,8 +134,9 @@ class Story:
         f.write(story_json)
         f.close()
 
-        console_print("Game saved.")
-        console_print("To load the game, type 'load' and enter the following ID: " + str(ref.uuid))
+        if not silent:
+            console_print("Game saved.")
+            console_print("To load the game, type 'load' and enter the following ID: " + str(ref.uuid))
         return ref.uuid
 
     def load_from_storage(self, story_id):
