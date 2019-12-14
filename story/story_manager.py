@@ -102,7 +102,7 @@ class Story:
         story_dict["uuid"] = self.uuid
         story_dict["rating"] = self.rating
 
-        return json.dumps(story_dict)
+        return json.dumps(story_dict, indent=4)
 
     def save_to_local(self, save_name):
         self.uuid = str(uuid.uuid1())
