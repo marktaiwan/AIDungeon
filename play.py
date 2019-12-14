@@ -327,6 +327,8 @@ def play_aidungeon_2():
                         console_print(story_manager.story.results[-1])
                     except FunctionTimedOut:
                         console_print("That input caused the model to hang (timeout is {}, use set timeout ## command to change)".format(story_manager.inference_timeout))
+                        if ping:
+                            playsound('ping.mp3', block=False)
                         continue
                 except NameError:
                     pass
@@ -363,6 +365,8 @@ def play_aidungeon_2():
                     result = "\n" + story_manager.act_with_timeout(action)
                 except FunctionTimedOut:
                     console_print("That input caused the model to hang (timeout is {}, use set timeout ## command to change)".format(story_manager.inference_timeout))
+                    if ping:
+                        playsound('ping.mp3', block=False)
                     continue
                 if len(story_manager.story.results) >= 2:
                     similarity = get_similarity(
@@ -374,6 +378,8 @@ def play_aidungeon_2():
                         console_print(
                             "Woops that action caused the model to start looping. Try a different action to prevent that."
                         )
+                        if ping:
+                            playsound('ping.mp3', block=False)
                         continue
 
                 if player_won(result):
