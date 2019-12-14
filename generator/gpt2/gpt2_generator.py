@@ -124,6 +124,8 @@ class GPT2Generator:
         if (len(result) == 0 or result.count(".") < 3) and depth < 20:
             print("\nRetrying prompt...\nAttempt {}".format(depth))
             return self.generate(self.cut_down_prompt(prompt), depth=depth+1)
+        elif result.count(".") < 2 and depth < 20:
+            return self.generate(prompt, depth=depth+1)
 
         return result
         
