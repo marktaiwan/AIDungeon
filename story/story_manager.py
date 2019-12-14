@@ -68,7 +68,7 @@ class Story:
     def latest_result(self):
 
         mem_ind = self.memory
-        if len(self.results) < 2:
+        if len(self.results) < 5:
             latest_result = self.story_start
         else:
             latest_result = self.context
@@ -176,6 +176,7 @@ class StoryManager:
         file_name = os.path.join("saves", story_id + ".json")
 
         exists = os.path.isfile(file_name)
+
         if exists:
             with open(file_name, "r") as fp:
                 game = json.load(fp)

@@ -89,26 +89,27 @@ def instructions():
     text += '\n ex. "!A dragon swoops down and eats Sir Theo."'
     text += '\n'
     text += "\nThe following commands can be entered for any action: "
-    text += '\n  "revert"          Reverts the last action allowing you to pick a different action.'
-    text += '\n  "retry"           Reverts the last action and tries again with the same action.'
-    text += '\n  "quit"            Quits the game and saves'
-    text += '\n  "restart"         Starts a new game and saves your current one'
-    text += '\n  "autosave"        Toggle autosave on and off. Default is off'
-    text += '\n  "save"            Makes a new save of your game and gives you the save ID'
-    text += '\n  "load"            Asks for a save ID and loads the game if the ID is valid'
-    text += '\n  "print"           Prints a transcript of your adventure'
-    text += '\n  "help"            Prints these instructions again'
-    text += '\n  "stats"           Display AI parameters'
-    text += '\n  "toggle censor"   Turn censoring off or on.'
-    text += '\n  "toggle ping"     Play a ping sound when the AI responds'
-    text += '\n  "set timeout ##"  to set a timeout for the AI to respond.'
-    text += '\n  "set memory #"    Changes the AI\'s memory (How far back'
-    text += '\n                    the conversation it looks). Default is 20.'
-    text += '\n  "set temp #"      Changes the AI\'s temperature (higher temperature = less focused).'
-    text += '\n                    Default is 0.4.'
-    text += '\n  "set top_k #"     Changes the AI\'s top_k'
-    text += '\n                    (higher top_k = more wording deviation). Default is 80.'
-    text += '\n  "remember XXX"    Commit something important to the AI\'s memory for that session.'
+    text += '\n  "revert"         Reverts the last action allowing you to pick a different action.'
+    text += '\n  "retry"          Reverts the last action and tries again with the same action.'
+    text += '\n  "quit"           Quits the game and saves'
+    text += '\n  "restart"        Starts a new game and saves your current one'
+    text += '\n  "autosave"       Toggle autosave on and off. Default is off'
+    text += '\n  "save"           Makes a new save of your game and gives you the save ID'
+    text += '\n  "load"           Asks for a save ID and loads the game if the ID is valid'
+    text += '\n  "print"          Prints a transcript of your adventure'
+    text += '\n  "help"           Prints these instructions again'
+    text += '\n  "stats"          Prints the current game settings'
+    text += '\n  "censor off/on"  Turn censoring off or on.'
+    text += '\n  "ping off/on"    Turn playing a ping sound when the AI responds off or on.'
+    text += '\n                   (not compatible with Colab)'
+    text += '\n  "set timeout ##" Set a timeout for the AI to respond.'
+    text += '\n  "set memory #"   Changes the AI\'s memory (How far back'
+    text += '\n                   the conversation it looks). Default is 20.'
+    text += '\n  "set temp #"     Changes the AI\'s temperature'
+    text += '\n                   (higher temperature = less focused). Default is 0.4.'
+    text += '\n  "set top_k #"    Changes the AI\'s top_k'
+    text += '\n                   (higher top_k = bigger memorized vocabulary). Default is 80.'
+    text += '\n  "remember XXX"   Commit something important to the AI\'s memory for that session.'
     return text
 
 
@@ -215,7 +216,7 @@ def play_aidungeon_2():
                     console_print("Saving has been turned off. Cannot save.")
 
             elif action == "load":
-                load_ID = input("What is the ID of the saved game?")
+                load_ID = input("What is the ID of the saved game? ")
                 result = story_manager.story.load_from_storage(load_ID)
                 console_print("\nLoading Game...\n")
                 console_print(result)
@@ -339,11 +340,11 @@ def play_aidungeon_2():
                     action = ""
                     
                 elif action[0] == '!':
-                    action = "\n" + action[1:].replace("\\n", "\n") + "\n"
+                    action = "> \n" + action[1:].replace("\\n", "\n") + "\n"
 
                 elif action[0] != '"':
                     action = action.strip()
-                    if "You" not in action[:6] and "I" not in action[:6]:
+                    if not action.lower().startswith("you") and not action.lower().startswith("i"):
                         action = "You " + action
                         
                     action = action[0].lower() + action[1:]

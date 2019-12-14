@@ -104,14 +104,16 @@ def split_first_sentence(text):
 
 def cut_trailing_action(text):
     lines = text.split("\n")
-    last_line = lines[-1]
+    for i in range(len(lines)):
+        lines[i] += "\n"
+    last_para = lines[-1].split(".")
+    last_line = last_para[-1].rstrip()
     if (
-        "you ask" in last_line
-        or "You ask" in last_line
-        or "you say" in last_line
-        or "You say" in last_line
-    ) and len(lines) > 1:
-        text = "\n".join(lines[0:-1])
+        "you ask" in last_line.lower()
+    ) and len(last_para) > 1:
+        last_para = last_para[:-1]
+    lines[-1] = ".".join(last_para) + "."
+    text = "\n".join(lines)
     return text
 
 
