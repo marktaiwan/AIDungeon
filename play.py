@@ -194,6 +194,17 @@ def play_aidungeon_2():
             elif action == "help":
                 console_print(instructions())
 
+            elif action == "stats":
+                text =    "nosaving is set to:    " + str(not upload_story)
+                text += "\nautosave is set to:    " + str(autosave)
+                text += "\nping is set to:        " + str(ping)
+                text += "\ncensor is set to:      " + str(generator.censor)
+                text += "\n"
+                text += "\nmemory is set to:      " + str(story_manager.story.memory)
+                text += "\ntemperature is set to: " + str(story_manager.generator.temp)
+                text += "\ntop_k is set to:       " + str(story_manager.generator.top_k)
+                print(text)
+
             elif action == "autosave":
                 autosave = not autosave
                 console_print("Autosaving is now turned " + ("on" if autosave else "off"))
@@ -236,17 +247,6 @@ def play_aidungeon_2():
                     console_print(str(story_manager.story), int(line_break))
                 else:
                     console_print(str(story_manager.story))
-
-            elif action == "stats":
-                text =    "nosaving is set to:    " + str(not upload_story)
-                text += "\nautosave is set to:    " + str(autosave)
-                text += "\nping is set to:        " + str(ping)
-                text += "\ncensor is set to:      " + str(generator.censor)
-                text += "\n"
-                text += "\nmemory is set to:      " + str(story_manager.story.memory)
-                text += "\ntemperature is set to: " + str(story_manager.generator.temp)
-                text += "\ntop_k is set to:       " + str(story_manager.generator.top_k)
-                print(text)
 
             elif action == "revert":
 
