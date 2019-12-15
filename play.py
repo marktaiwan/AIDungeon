@@ -1,8 +1,10 @@
+#!/usr/bin/env python3
 import os
 import sys
 import time
 
 from generator.gpt2.gpt2_generator import *
+from story import grammars
 from story.story_manager import *
 from story.utils import *
 from playsound import playsound
@@ -52,6 +54,19 @@ def select_game():
             "a starting point for the story. Unlike the context, the AI will eventually forget this prompt, ex:\n 'After arriving "
             "at the forest, it turns out the evil dragon is actually a pretty cute monster girl. You decide you're going to lay "
             "this dragon instead.'"
+            "\nEnter a prompt that describes who you are and the first couple sentences of where you start "
+            "out ex:\n 'You are a knight in the kingdom of Larion. You are hunting the evil dragon who has been "
+            + "terrorizing the kingdom. You enter the forest searching for the dragon and see' "
+        )
+        context = input("Story Context: ")
+        if len(context) > 0 and not context.endswith(" "):
+            context = context + " "
+
+        console_print(
+            "\nNow enter a prompt that describes the start of your story. This comes after the Story Context and will give the AI "
+            "a starting point for the story. Unlike the context, the AI will eventually forget this prompt, ex:\n 'After arriving "
+            "at the forest, it turns out the evil dragon is actually a pretty cute monster girl. You decide you're going to lay "
+            "this dragon instead.'"
         )
         prompt = input("Starting Prompt: ")
         return context, prompt
@@ -68,21 +83,28 @@ def select_game():
     setting_description = data["settings"][setting_key]["description"]
     character = data["settings"][setting_key]["characters"][character_key]
 
-    context = (
-        "You are "
-        + name
-        + ", a "
-        + character_key
-        + " "
-        + setting_description
-        + "You have a "
-        + character["item1"]
-        + " and a "
-        + character["item2"]
-        + ". "
-    )
-    prompt_num = np.random.randint(0, len(character["prompts"]))
-    prompt = character["prompts"][prompt_num]
+    name_token = "<NAME>"
+    if character_key == "noble" or character_key == "knight":
+        context = grammars.generate(setting_key, character_key, "context") + "\n\n"
+        context = context.replace(name_token, name)
+        prompt = grammars.generate(setting_key, character_key, "prompt")
+        prompt = prompt.replace(name_token, name)
+    else:
+        context = (
+            "You are "
+            + name
+            + ", a "
+            + character_key
+            + " "
+            + setting_description
+            + "You have a "
+            + character["item1"]
+            + " and a "
+            + character["item2"]
+            + ". "
+        )
+        prompt_num = np.random.randint(0, len(character["prompts"]))
+        prompt = character["prompts"][prompt_num]
 
     return context, prompt
 
@@ -99,27 +121,26 @@ def instructions():
     text += '\n ex. "!A dragon swoops down and eats Sir Theo."'
     text += '\n'
     text += "\nThe following commands can be entered for any action: "
-    text += '\n  "revert"         Reverts the last action allowing you to pick a different action.'
-    text += '\n  "retry"          Reverts the last action and tries again with the same action.'
-    text += '\n  "quit"           Quits the game and saves'
-    text += '\n  "restart"        Starts a new game and saves your current one'
-    text += '\n  "autosave"       Toggle autosave on and off. Default is off'
-    text += '\n  "save"           Makes a new save of your game and gives you the save ID'
-    text += '\n  "load"           Asks for a save ID and loads the game if the ID is valid'
-    text += '\n  "print"          Prints a transcript of your adventure'
-    text += '\n  "help"           Prints these instructions again'
-    text += '\n  "stats"          Prints the current game settings'
-    text += '\n  "censor off/on"  Turn censoring off or on.'
-    text += '\n  "ping off/on"    Turn playing a ping sound when the AI responds off or on.'
+    text += '\n  "/revert"         Reverts the last action allowing you to pick a different action.'
+    text += '\n  "/retry"          Reverts the last action and tries again with the same action.'
+    text += '\n  "/alter"          Edit the most recent AI response'
+    text += '\n  "/quit"           Quits the game and saves'
+    text += '\n  "/restart"        Starts a new game and saves your current one'
+    text += '\n  "/autosave"       Toggle autosave on and off. Default is off'
+    text += '\n  "/save"           Makes a new save of your game and gives you the save ID'
+    text += '\n  "/load"           Asks for a save ID and loads the game if the ID is valid'
+    text += '\n  "/print"          Prints a transcript of your adventure'
+    text += '\n  "/help"           Prints these instructions again'
+    text += '\n  "/stats"          Prints the current game settings'
+    text += '\n  "/censor"         Turn censoring off or on.'
+    text += '\n  "/ping"           Turn playing a ping sound when the AI responds off or on.'
     text += '\n                   (not compatible with Colab)'
-    text += '\n  "set timeout ##" Set a timeout for the AI to respond.'
-    text += '\n  "set memory #"   Changes the AI\'s memory (How far back'
-    text += '\n                   the conversation it looks). Default is 20.'
-    text += '\n  "set temp #"     Changes the AI\'s temperature'
+    text += '\n  "/timeout #"      Set a timeout for the AI to respond.'
+    text += '\n  "/temp #.#"       Changes the AI\'s temperature'
     text += '\n                   (higher temperature = less focused). Default is 0.4.'
-    text += '\n  "set top_k #"    Changes the AI\'s top_k'
+    text += '\n  "/topk ##"        Changes the AI\'s top_k'
     text += '\n                   (higher top_k = bigger memorized vocabulary). Default is 80.'
-    text += '\n  "remember XXX"   Commit something important to the AI\'s memory for that session.'
+    text += '\n  "/remember XXX"   Commit something important to the AI\'s memory for that session.'
     return text
 
 
@@ -127,12 +148,12 @@ def play_aidungeon_2():
 
     console_print(
         "AI Dungeon 2 will save and use your actions and game to continually improve AI Dungeon."
-        + " If you would like to disable this enter 'nosaving' for any action. This will also turn off the "
+        + " If you would like to disable this enter '/nosaving' as an action. This will also turn off the "
         + "ability to save games."
     )
 
-    upload_story = True
-    ping = True
+    upload_story = False
+    ping = False
     autosave = False
 
     print("\nInitializing AI Dungeon! (This might take a few minutes)\n")
@@ -148,204 +169,213 @@ def play_aidungeon_2():
         if story_manager.story != None:
             del story_manager.story
 
-        print("\n\n")
-
-        splash_choice = splash()
-
-        if splash_choice == "new":
+        while story_manager.story is None: 
             print("\n\n")
-            context, prompt = select_game()
-            change_config = input("Would you like to enter a new temp and top_k now? (default: 0.4, 80) (y/N) ")
-            if change_config.lower() == "y":
-                story_manager.generator.change_temp(float(input("Enter a new temp (default 0.4): ") or 0.4))
-                story_manager.generator.change_topk(int(input("Enter a new top_k (default 80): ") or 80))
-                console_print("Please wait while the AI model is regenerated...")
-                story_manager.generator.gen_output()
-            console_print(instructions())
-            print("\nGenerating story...")
-            story_manager.generator.generate_num = 120
-            story_manager.start_new_story(
-                prompt, context=context, upload_story=upload_story
-            )
-            print("\n")
-            console_print(str(story_manager.story))
-            story_manager.generator.generate_num = story_manager.generator.default_gen_num
+            splash_choice = splash()
 
-        else:
-            load_ID = input("What is the ID of the saved game? ")
-            result = story_manager.load_new_story(load_ID)
-            print("\nLoading Game...\n")
-            print(result)
+            if splash_choice == "new":
+                print("\n\n")
+                context, prompt = select_game()
+                change_config = input("Would you like to enter a new temp and top_k now? (default: 0.4, 80) (y/N) ")
+                if change_config.lower() == "y":
+                    story_manager.generator.change_temp(float(input("Enter a new temp (default 0.4): ") or 0.4))
+                    story_manager.generator.change_topk(int(input("Enter a new top_k (default 80): ") or 80))
+                    console_print("Please wait while the AI model is regenerated...")
+                    story_manager.generator.gen_output()
+                console_print(instructions())
+                print("\nGenerating story...")
+                story_manager.generator.generate_num = 120
+                story_manager.start_new_story(
+                    prompt, context=context, upload_story=upload_story
+                )
+                print("\n")
+                console_print(str(story_manager.story))
+                story_manager.generator.generate_num = story_manager.generator.default_gen_num
+
+            else:
+                load_ID = input("What is the ID of the saved game? ")
+                result = story_manager.load_new_story(load_ID)
+                print("\nLoading Game...\n")
+                print(result)
 
         while True:
             if autosave:
                 story_manager.story.save_to_storage(overwrite=True, silent=True)
 
             sys.stdin.flush()
-            action = input("> ")
-            if action == "restart":
-                # rating = input("Please rate the story quality from 1-10: ")
-                # rating_float = float(rating)
-                # story_manager.story.rating = rating_float
-                break
+            action = input("> ").strip()
+            if len(action) > 0 and action[0] == "/":
+                split = action[1:].split(" ") # removes preceding slash
+                command = split[0].lower()
+                args = split[1:]
+                if command == "restart":
+                    # rating = input("Please rate the story quality from 1-10: ")
+                    # rating_float = float(rating)
+                    # story_manager.story.rating = rating_float
+                    break
 
-            elif action == "quit":
-                # rating = input("Please rate the story quality from 1-10: ")
-                # rating_float = float(rating)
-                # story_manager.story.rating = rating_float
-                if not autosave: story_manager.story.save_to_storage(overwrite=True)
-                exit()
+                elif command == "quit":
+                    # rating = input("Please rate the story quality from 1-10: ")
+                    # rating_float = float(rating)
+                    # story_manager.story.rating = rating_float
+                    if not autosave: story_manager.story.save_to_storage(overwrite=True)
+                    exit()
 
-            elif action == "nosaving":
-                upload_story = False
-                story_manager.story.upload_story = False
-                console_print("Saving turned off.")
+                elif command == "nosaving":
+                    upload_story = False
+                    story_manager.story.upload_story = False
+                    console_print("Saving turned off.")
 
-            elif action == "help":
-                console_print(instructions())
+                elif command == "help":
+                    console_print(instructions())
 
-            elif action == "stats":
-                text =    "nosaving is set to:    " + str(not upload_story)
-                text += "\nautosave is set to:    " + str(autosave)
-                text += "\nping is set to:        " + str(ping)
-                text += "\ncensor is set to:      " + str(generator.censor)
-                text += "\n"
-                text += "\nmemory is set to:      " + str(story_manager.story.memory)
-                text += "\ntemperature is set to: " + str(story_manager.generator.temp)
-                text += "\ntop_k is set to:       " + str(story_manager.generator.top_k)
-                print(text)
+                elif command == "stats":
+                    text =    "nosaving is set to:    " + str(not upload_story) 
+                    text += "\nautosave is set to:    " + str(autosave) 
+                    text += "\nping is set to:        " + str(ping) 
+                    text += "\ncensor is set to:      " + str(generator.censor) 
+                    text += "\n"
+                    text += "\ntemperature is set to: " + str(story_manager.generator.temp) 
+                    text += "\ntop_k is set to:       " + str(story_manager.generator.top_k) 
+                    print(text) 
 
-            elif action == "autosave":
-                autosave = not autosave
-                console_print("Autosaving is now turned " + ("on" if autosave else "off"))
+                elif action == "autosave": 
+                    autosave = not autosave 
+                    console_print("Autosaving is now turned " + ("on" if autosave else "off"))
 
-            elif action == "toggle censor":
-                generator.censor = not generator.censor
-                console_print("Censor is now turned " + ("on" if generator.censor else "off"))
-                
-            elif action == "toggle ping":
-                ping = not ping
-                console_print("Ping is now turned " + ("on" if ping else "off"))
 
-            elif action == "save":
-                if upload_story:
-                    print("Save to new file, or overwrite the current file?")
+                elif command == "censor":
+                    generator.censor = not generator.censor
+                    console_print("Censor is now turned " + ("on" if generator.censor else "off"))
+
+                elif command == "ping":
+                    ping = not ping
+                    console_print("Ping is now turned " + ("on" if ping else "off"))
+
+                elif command == "load":
+                    if len(args) == 0:
+                        load_ID = input("What is the ID of the saved game? ")
+                    else:
+                        load_ID = args[0]
+
+                    result = story_manager.story.load_from_storage(load_ID)
+                    console_print("\nLoading Game...\n")
+                    console_print(result)
+
+                elif command == "save":
+                    print("Save to new file, or overwrite the current file?") 
                     print("0) Save as new\n1) Save to current file\n")
                     choice = get_num_options(2)
-                    story_manager.story.save_to_storage(overwrite=(choice == 1))
-                else:
-                    console_print("Saving has been turned off. Cannot save.")
+                    overwrite_save = (choice == 1)
+                    id = story_manager.story.save_to_storage(overwrite=overwrite_save)
 
-            elif action == "load":
-                load_ID = input("What is the ID of the saved game? ")
-                result = story_manager.story.load_from_storage(load_ID)
-                console_print("\nLoading Game...\n")
-                console_print(result)
+                elif command == "print":
+                    line_break = input("Format output with extra newline? (y/n)\n> ") 
+                    print("\nPRINTING\n") 
+                    if line_break == "n": 
+                        print(str(story_manager.story)) 
+                    else: 
+                        console_print(str(story_manager.story)) 
 
-            elif len(action.split(" ")) == 2 and action.split(" ")[0] == "load":
-                load_ID = action.split(" ")[1]
-                result = story_manager.story.load_from_storage(load_ID)
-                console_print("\nLoading Game...\n")
-                console_print(result)
-
-            elif action == "print":
-                line_break = input("Format output into fixed width? (y/n, or enter an integer for custom width)\n> ")
-                print("\nPRINTING\n")
-                if line_break == "n":
-                    print(str(story_manager.story))
-                elif line_break.isdigit():
-                    console_print(str(story_manager.story), int(line_break))
-                else:
-                    console_print(str(story_manager.story))
-
-            elif action == "revert":
-
-                if len(story_manager.story.actions) is 0:
-                    console_print("You can't go back any farther. ")
-                    continue
-
-                story_manager.story.actions = story_manager.story.actions[:-1]
-                story_manager.story.results = story_manager.story.results[:-1]
-                console_print("Last action reverted. ")
-                if len(story_manager.story.results) > 0:
-                    console_print(story_manager.story.results[-1])
-                else:
-                    console_print(story_manager.story.story_start)
-                continue
-                
-            elif len(action.split(" ")) == 3 and action.startswith('set timeout'):
-
-                try:
-                    story_manager.inference_timeout = int(action.split(" ")[2])
-                    console_print("Set timeout to {}".format(story_manager.inference_timeout))
-                except:
-                    console_print("Failed to set timeout. Example usage: set timeout 30")
-                    continue
-            
-            elif len(action.split(" ")) == 3 and action.startswith('set memory'):
-                try:
-                    story_manager.story.memory = int(action.split(" ")[2])
-                    console_print("Set memory to {}".format(story_manager.story.memory))
-                except:
-                    console_print("Failed to set temperature. Example usage: set memory 20")
-                    continue
-
-            elif len(action.split(" ")) == 3 and action.startswith('set temp'):
-
-                try:
-                    console_print("Regenerating model, please wait...")
-                    story_manager.generator.change_temp(float(action.split(" ")[2]))
-                    story_manager.generator.gen_output()
-                    console_print("Set temp to {}".format(story_manager.generator.temp))
-                except:
-                    console_print("Failed to set temperature. Example usage: set temp 0.4")
-                    continue
-
-            elif len(action.split(" ")) == 3 and action.startswith('set top_k'):
-
-                try:
-                    console_print("Regenerating model, please wait...")
-                    story_manager.generator.change_topk(int(action.split(" ")[2]))
-                    story_manager.generator.gen_output()
-                    console_print("Set top_k to {}".format(story_manager.generator.top_k))
-                except:
-                    console_print("Failed to set top_k. Example usage: set top_k 80")
-                    continue
-                
-            elif len(action.split(" ")) > 1 and action.split(" ")[0] == 'remember':
-
-                try:
-                    story_manager.story.context += "You know " + " ".join(action.split(" ")[1:]) + ". "
-                    console_print("You make sure to remember {}.".format(" ".join(action.split(" ")[1:])))
-                except:
-                    console_print("Failed to add to memory. Example usage: remember that Sir Theo is a knight")
-                    
-            elif action == 'retry':
-
-                if len(story_manager.story.actions) is 0:
-                    console_print("There is nothing to retry.")
-                    continue
-
-                console_print("Retrying last action...")
-                last_action = story_manager.story.actions.pop()
-                last_result = story_manager.story.results.pop()
-
-                try:
-                    try:
-                        story_manager.act_with_timeout(last_action)
-                        console_print(last_action)
-                        console_print(story_manager.story.results[-1])
-                    except FunctionTimedOut:
-                        console_print("That input caused the model to hang (timeout is {}, use set timeout ## command to change)".format(story_manager.inference_timeout))
-                        if ping:
-                            playsound('ping.mp3', block=False)
+                elif command == "revert":
+                    if len(story_manager.story.actions) is 0:
+                        console_print("You can't go back any farther. ")
                         continue
-                except NameError:
-                    pass
-                if ping:
-                    playsound('ping.mp3', block=False)
 
-                continue
+                    story_manager.story.actions = story_manager.story.actions[:-1]
+                    story_manager.story.results = story_manager.story.results[:-1]
+                    console_print("Last action reverted. ")
+                    if len(story_manager.story.results) > 0:
+                        console_print(story_manager.story.results[-1])
+                    else:
+                        console_print(story_manager.story.story_start)
+                    continue
+
+                elif command == "alter": 
+                    if len(story_manager.story.results) is 0: 
+                        console_print("There's no results to alter.\n") 
+                        continue 
+     
+                    console_print("\nThe AI thinks this was what happened:\n") 
+                    print(story_manager.story.results[-1]) 
+                    result = input("\nWhat actually happened was (use \\n for new line):\n\n") 
+                    result = result.replace("\\n", "\n") 
+                    story_manager.story.results[-1] = result 
+
+                elif command == "timeout":
+
+                    if len(args) != 1:
+                        console_print("Failed to set timeout. Example usage: timeout 30")
+                    else:
+                        try:
+                            story_manager.inference_timeout = int(args[0])
+                            console_print("Set timeout to {}".format(story_manager.inference_timeout))
+                        except:
+                            console_print("Failed to set timeout. Example usage: timeout 30")
+                            continue
+                    
+                elif command == "temp":
+                
+                    if len(args) != 1:
+                        console_print("Failed to set temperature. Example usage: temp 0.4")
+                    else:
+                        try:
+                            console_print("Regenerating model, please wait...")
+                            story_manager.generator.change_temp(float(args[0]))
+                            story_manager.generator.gen_output()
+                            console_print("Set temp to {}".format(story_manager.generator.temp))
+                        except:
+                            console_print("Failed to set temperature. Example usage: temp 0.4")
+                            continue
+                
+                elif command == "topk":
+                
+                    if len(args) != 1:
+                        console_print("Failed to set top_k. Example usage: topk 80")
+                    else:
+                        try:
+                            console_print("Regenerating model, please wait...")
+                            story_manager.generator.change_topk(int(args[0]))
+                            story_manager.generator.gen_output()
+                            console_print("Set top_k to {}".format(story_manager.generator.top_k))
+                        except:
+                            console_print("Failed to set top_k. Example usage: topk 80")
+                            continue
+                
+                elif command == 'remember':
+
+                    try:
+                        story_manager.story.context += "You know " + " ".join(args[0:]) + ". "
+                        console_print("You make sure to remember {}.".format(" ".join(action.split(" ")[1:])))
+                    except:
+                        console_print("Failed to add to memory. Example usage: remember that Sir Theo is a knight")
+                    
+                elif command == 'retry':
+
+                    if len(story_manager.story.actions) is 0:
+                        console_print("There is nothing to retry.")
+                        continue
+
+                    last_action = story_manager.story.actions.pop()
+                    last_result = story_manager.story.results.pop()
+
+                    try:
+                        try:
+                            story_manager.act_with_timeout(last_action)
+                            console_print(last_action)
+                            console_print(story_manager.story.results[-1])
+                        except FunctionTimedOut:
+                            console_print("That input caused the model to hang (timeout is {}, use infto ## command to change)".format(story_manager.inference_timeout))
+                            if ping:
+                                playsound('ping.mp3')
+                    except NameError:
+                        pass
+                    if ping:
+                        playsound('ping.mp3')
+
+                    continue
+                else:
+                    console_print(f"Unknown command: {command}")
 
             else:
                 if action == "":
@@ -374,9 +404,9 @@ def play_aidungeon_2():
                 try:
                     result = "\n" + story_manager.act_with_timeout(action)
                 except FunctionTimedOut:
-                    console_print("That input caused the model to hang (timeout is {}, use set timeout ## command to change)".format(story_manager.inference_timeout))
+                    console_print("That input caused the model to hang (timeout is {}, use timeout ## command to change)".format(story_manager.inference_timeout))
                     if ping:
-                        playsound('ping.mp3', block=False)
+                        playsound('ping.mp3')
                     continue
                 if len(story_manager.story.results) >= 2:
                     similarity = get_similarity(
@@ -389,7 +419,7 @@ def play_aidungeon_2():
                             "Woops that action caused the model to start looping. Try a different action to prevent that."
                         )
                         if ping:
-                            playsound('ping.mp3', block=False)
+                            playsound('ping.mp3')
                         continue
 
                 if player_won(result):
