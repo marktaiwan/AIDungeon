@@ -9,7 +9,7 @@ from story.utils import *
 
 class Story:
     def __init__(
-        self, story_start, context="", seed=None, game_state=None, upload_story=False, cloud=False
+        self, story_start, context="", seed=None, game_state=None, upload_story=False
     ):
         self.story_start = story_start
         self.context = context
@@ -32,7 +32,6 @@ class Story:
             game_state = dict()
         self.game_state = game_state
         self.memory = 20
-        self.cloud = cloud
 
     def __del__(self):
         if self.upload_story:
@@ -101,41 +100,40 @@ class Story:
         story_dict["uuid"] = self.uuid
         story_dict["rating"] = self.rating
 
-        return json.dumps(story_dict)
+        return json.dumps(story_dict, indent=4)
 
-    def save_to_storage(self):
-        self.uuid = str(uuid.uuid1())
+    def save_to_storage(self, overwrite=False, silent=False):
+        if self.uuid == None:
+            self.uuid = str(uuid.uuid1())
+        ref = self if overwrite else copy.copy(self)
+
+        if overwrite == False:
+            ref.uuid = str(uuid.uuid1())
 
         save_path = "./saves/"
 
         if not os.path.exists(save_path):
             os.makedirs(save_path)
 
-        story_json = self.to_json()
-        file_name = "story" + str(self.uuid) + ".json"
+        story_json = ref.to_json()
+        file_name = str(ref.uuid) + ".json"
         f = open(os.path.join(save_path, file_name), "w")
         f.write(story_json)
         f.close()
 
-        FNULL = open(os.devnull, "w")
-        if self.cloud:
-            p = Popen(
-                ["gsutil", "cp", os.path.join(save_path, file_name), "gs://aidungeonstories"],
-                stdout=FNULL,
-                stderr=subprocess.STDOUT,
-            )
-        return self.uuid
+        if not silent:
+            console_print("Game saved.")
+            console_print("To load the game, type 'load' and enter the following ID: " + str(ref.uuid))
+
+        return ref.uuid
 
     def load_from_storage(self, story_id):
-        save_path = "./saved_stories/"
+        save_path = "./saves/"
 
         if not os.path.exists(save_path):
             return "Error save not found."
 
-        file_name = "story" + story_id + ".json"
-        if self.cloud:
-            cmd = "gsutil cp gs://aidungeonstories/" + file_name + " " + save_path
-            os.system(cmd)
+        file_name = story_id + ".json"
         exists = os.path.isfile(os.path.join(save_path, file_name))
 
         if exists:
@@ -166,12 +164,9 @@ class StoryManager:
         )
         return str(self.story)
 
-    def load_new_story(self, story_id, cloud=False):
-        file_name = os.path.join("saves","story" + story_id + ".json")
-        if cloud:
-            file_name = "story" + story_id + ".json"
-            cmd = "gsutil cp gs://aidungeonstories/" + file_name + " ."
-            os.system(cmd)
+    def load_new_story(self, story_id, upload_story=False):
+        save_path = "./saves/"
+        file_name = os.path.join(save_path, story_id + ".json")
         exists = os.path.isfile(file_name)
 
         if not exists:

@@ -116,16 +116,16 @@ def instructions():
     text += '\n  "/alter"          Edit the most recent AI response'
     text += '\n  "/quit"           Quits the game and saves'
     text += '\n  "/restart"        Starts a new game and saves your current one'
-    text += '\n  "/cloud"          Turns on cloud saving when you use the "save" command'
+    text += '\n  "/autosave"       Toggle autosave on and off. Default is off'
     text += '\n  "/save"           Makes a new save of your game and gives you the save ID'
     text += '\n  "/load"           Asks for a save ID and loads the game if the ID is valid'
     text += '\n  "/print"          Prints a transcript of your adventure'
     text += '\n  "/help"           Prints these instructions again'
-    text += '\n  "/showstats"      Prints the current game settings'
-    text += '\n  "/censor off/on"  Turn censoring off or on.'
-    text += '\n  "/ping off/on"    Turn playing a ping sound when the AI responds off or on.'
+    text += '\n  "/stats"          Prints the current game settings'
+    text += '\n  "/censor"         Turn censoring off or on.'
+    text += '\n  "/ping"           Turn playing a ping sound when the AI responds off or on.'
     text += '\n                   (not compatible with Colab)'
-    text += '\n  "/infto ##"       Set a timeout for the AI to respond.'
+    text += '\n  "/timeout #"      Set a timeout for the AI to respond.'
     text += '\n  "/temp #.#"       Changes the AI\'s temperature'
     text += '\n                   (higher temperature = less focused). Default is 0.4.'
     text += '\n  "/topk ##"        Changes the AI\'s top_k'
@@ -142,8 +142,9 @@ def play_aidungeon_2():
         + "ability to save games."
     )
 
-    upload_story = True
+    upload_story = False
     ping = False
+    autosave = False
 
     print("\nInitializing AI Dungeon! (This might take a few minutes)\n")
     generator = GPT2Generator()
@@ -182,16 +183,15 @@ def play_aidungeon_2():
                 story_manager.generator.generate_num = story_manager.generator.default_gen_num
 
             else:
-                load_ID = input("What is the ID of the saved game? (prefix with gs:// if it is a cloud save) ")
-                if load_ID.startswith("gs://"):
-                    result = story_manager.load_new_story(load_ID[5:], True)
-                    story_manager.story.cloud = True
-                else:
-                    result = story_manager.load_new_story(load_ID)
+                load_ID = input("What is the ID of the saved game? ")
+                result = story_manager.load_new_story(load_ID)
                 print("\nLoading Game...\n")
                 print(result)
 
         while True:
+            if autosave:
+                story_manager.story.save_to_storage(overwrite=True, silent=True)
+
             sys.stdin.flush()
             action = input("> ").strip()
             if len(action) > 0 and action[0] == "/":
@@ -199,15 +199,16 @@ def play_aidungeon_2():
                 command = split[0].lower()
                 args = split[1:]
                 if command == "restart":
-                    rating = input("Please rate the story quality from 1-10: ")
-                    rating_float = float(rating)
-                    story_manager.story.rating = rating_float
+                    # rating = input("Please rate the story quality from 1-10: ")
+                    # rating_float = float(rating)
+                    # story_manager.story.rating = rating_float
                     break
 
                 elif command == "quit":
-                    rating = input("Please rate the story quality from 1-10: ")
-                    rating_float = float(rating)
-                    story_manager.story.rating = rating_float
+                    # rating = input("Please rate the story quality from 1-10: ")
+                    # rating_float = float(rating)
+                    # story_manager.story.rating = rating_float
+                    if not autosave: story_manager.story.save_to_storage(overwrite=True)
                     exit()
 
                 elif command == "nosaving":
@@ -215,92 +216,56 @@ def play_aidungeon_2():
                     story_manager.story.upload_story = False
                     console_print("Saving turned off.")
 
-                elif command == "cloud":
-                    story_manager.story.cloud = True
-                    console_print("Cloud saving turned on.")
-
                 elif command == "help":
                     console_print(instructions())
 
-                elif command == "showstats":
+                elif command == "stats":
                     text =    "nosaving is set to:    " + str(not upload_story) 
+                    text += "\nautosave is set to:    " + str(autosave) 
                     text += "\nping is set to:        " + str(ping) 
                     text += "\ncensor is set to:      " + str(generator.censor) 
+                    text += "\n"
                     text += "\ntemperature is set to: " + str(story_manager.generator.temp) 
                     text += "\ntop_k is set to:       " + str(story_manager.generator.top_k) 
                     print(text) 
 
+                elif action == "autosave": 
+                    autosave = not autosave 
+                    console_print("Autosaving is now turned " + ("on" if autosave else "off"))
+
+
                 elif command == "censor":
-                    if args[0] == "off":
-                        if not generator.censor:
-                            console_print("Censor is already disabled.")
-                        else:
-                            generator.censor = False
-                            console_print("Censor is now disabled.")
+                    generator.censor = not generator.censor
+                    console_print("Censor is now turned " + ("on" if generator.censor else "off"))
 
-                    elif args[0] == "on":
-                        if generator.censor:
-                            console_print("Censor is already enabled.")
-                        else:
-                            generator.censor = True
-                            console_print("Censor is now enabled.")
-                    else:
-                        console_print(f"Invalid argument: {args[0]}")
-                               
                 elif command == "ping":
-                    if args[0] == "off":
-                        if not ping:
-                            console_print("Ping is already disabled.")
-                        else:
-                            ping = False
-                            console_print("Ping is now disabled.")
-
-                    elif args[0] == "on":
-                        if ping:
-                            console_print("Ping is already enabled.")
-                        else:
-                            ping = True
-                            console_print("Ping is now enabled.")
-                    else:
-                        console_print(f"Invalid argument: {args[0]}")
+                    ping = not ping
+                    console_print("Ping is now turned " + ("on" if ping else "off"))
 
                 elif command == "load":
                     if len(args) == 0:
-                        load_ID = input("What is the ID of the saved game? (prefix with gs:// if it is a cloud save) ")
+                        load_ID = input("What is the ID of the saved game? ")
                     else:
                         load_ID = args[0]
-                    if load_ID.startswith("gs://"):
-                        story_manager.story.cloud = True
-                        result = story_manager.story.load_from_storage(load_ID[5:])
-                    else:
-                        result = story_manager.story.load_from_storage(load_ID)
-                    console_print("\nLoading Game...\n")
-                    console_print(result)
 
-                elif command == "save":
-                    if upload_story:
-                        id = story_manager.story.save_to_storage()
-                        console_print("Game saved.")
-                        console_print(f"To load the game, type 'load' and enter the following ID: {id}")
-                    else:
-                        console_print("Saving has been turned off. Cannot save.")
-
-                elif command == "load":
-                    if len(args) == 0:
-                        load_ID = input("What is the ID of the saved game?")
-                    else:
-                        load_ID = args[0]
                     result = story_manager.story.load_from_storage(load_ID)
                     console_print("\nLoading Game...\n")
                     console_print(result)
 
+                elif command == "save":
+                    print("Save to new file, or overwrite the current file?") 
+                    print("0) Save as new\n1) Save to current file\n")
+                    choice = get_num_options(2)
+                    overwrite_save = (choice == 1)
+                    id = story_manager.story.save_to_storage(overwrite=overwrite_save)
+
                 elif command == "print":
                     line_break = input("Format output with extra newline? (y/n)\n> ") 
                     print("\nPRINTING\n") 
-                    if line_break == "y": 
-                        console_print(str(story_manager.story)) 
-                    else: 
+                    if line_break == "n": 
                         print(str(story_manager.story)) 
+                    else: 
+                        console_print(str(story_manager.story)) 
 
                 elif command == "revert":
                     if len(story_manager.story.actions) is 0:
@@ -327,16 +292,16 @@ def play_aidungeon_2():
                     result = result.replace("\\n", "\n") 
                     story_manager.story.results[-1] = result 
 
-                elif command == "infto":
+                elif command == "timeout":
 
                     if len(args) != 1:
-                        console_print("Failed to set timeout. Example usage: infto 30")
+                        console_print("Failed to set timeout. Example usage: timeout 30")
                     else:
                         try:
                             story_manager.inference_timeout = int(args[0])
                             console_print("Set timeout to {}".format(story_manager.inference_timeout))
                         except:
-                            console_print("Failed to set timeout. Example usage: infto 30")
+                            console_print("Failed to set timeout. Example usage: timeout 30")
                             continue
                     
                 elif command == "temp":
@@ -391,6 +356,8 @@ def play_aidungeon_2():
                             console_print(story_manager.story.results[-1])
                         except FunctionTimedOut:
                             console_print("That input caused the model to hang (timeout is {}, use infto ## command to change)".format(story_manager.inference_timeout))
+                            if ping:
+                                playsound('ping.mp3')
                     except NameError:
                         pass
                     if ping:
@@ -402,10 +369,10 @@ def play_aidungeon_2():
 
             else:
                 if action == "":
-                    action = "\n> \n"
+                    action = ""
                     
                 elif action[0] == '!':
-                    action = "\n> \n" + action[1:].replace("\\n", "\n") + "\n"
+                    action = "\n" + action[1:].replace("\\n", "\n") + "\n"
 
                 elif action[0] != '"':
                     action = action.strip()
@@ -427,7 +394,7 @@ def play_aidungeon_2():
                 try:
                     result = "\n" + story_manager.act_with_timeout(action)
                 except FunctionTimedOut:
-                    console_print("That input caused the model to hang (timeout is {}, use infto ## command to change)".format(story_manager.inference_timeout))
+                    console_print("That input caused the model to hang (timeout is {}, use timeout ## command to change)".format(story_manager.inference_timeout))
                     if ping:
                         playsound('ping.mp3')
                     continue

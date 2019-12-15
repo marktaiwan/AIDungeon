@@ -122,8 +122,10 @@ class GPT2Generator:
         result = text
         result = self.result_replace(result, re.findall(".+?(?:\.{1,3}|[!\?]|$)", last_prompt))
         if len(result) == 0 and depth < 20:
+            print("\nRetrying prompt...\nAttempt {}".format(depth))
             return self.generate(self.cut_down_prompt(prompt), depth=depth+1)
         elif result.count(".") < 2 and depth < 20:
+            print("\nRetrying prompt...\nAttempt {}".format(depth))
             return self.generate(prompt, depth=depth+1)
 
         return result
