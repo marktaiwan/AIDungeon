@@ -58,16 +58,6 @@ def select_game():
             "out ex:\n 'You are a knight in the kingdom of Larion. You are hunting the evil dragon who has been "
             + "terrorizing the kingdom. You enter the forest searching for the dragon and see' "
         )
-        context = input("Story Context: ")
-        if len(context) > 0 and not context.endswith(" "):
-            context = context + " "
-
-        console_print(
-            "\nNow enter a prompt that describes the start of your story. This comes after the Story Context and will give the AI "
-            "a starting point for the story. Unlike the context, the AI will eventually forget this prompt, ex:\n 'After arriving "
-            "at the forest, it turns out the evil dragon is actually a pretty cute monster girl. You decide you're going to lay "
-            "this dragon instead.'"
-        )
         prompt = input("Starting Prompt: ")
         return context, prompt
     
@@ -153,7 +143,7 @@ def play_aidungeon_2():
     )
 
     upload_story = False
-    ping = False
+    ping = True
     autosave = False
 
     print("\nInitializing AI Dungeon! (This might take a few minutes)\n")
@@ -166,8 +156,7 @@ def play_aidungeon_2():
     print(starter)
 
     while True:
-        if story_manager.story != None:
-            del story_manager.story
+        story_manager.story = None
 
         while story_manager.story is None: 
             print("\n\n")
@@ -239,7 +228,7 @@ def play_aidungeon_2():
                     text += "\ntop_k is set to:       " + str(story_manager.generator.top_k) 
                     print(text) 
 
-                elif action == "autosave": 
+                elif command == "autosave": 
                     autosave = not autosave 
                     console_print("Autosaving is now turned " + ("on" if autosave else "off"))
 
