@@ -367,10 +367,14 @@ def play_aidungeon_2():
                     continue
 
                 elif command == "context":
-                    console_print("Current story context: \n" + story_manager.get_context() + "\n")
-                    new_context = input("Enter a new context describing the general status of your character and story: ")
-                    story_manager.set_context(new_context)
-                    console_print("Story context updated.\n")
+                    console_print("Current story context:\n" + story_manager.get_context() + "\n")
+                    print("Do you wish to change it?")
+                    print("0) Yes\n1) No\n")
+                    choice = get_num_options(2)
+                    if chocie == 1:
+                        new_context = input("Enter a new context describing the general status of your character and story:\n")
+                        story_manager.set_context(new_context)
+                        console_print("Story context updated.\n")
 
                 else:
                     console_print(f"Unknown command: {command}")
