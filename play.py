@@ -60,7 +60,7 @@ def select_game():
         )
         prompt = input("Starting Prompt: ")
         return context, prompt
-    
+
     setting_key = list(settings)[choice]
 
     print("\nPick a character")
@@ -131,6 +131,7 @@ def instructions():
     text += '\n  "/topk ##"        Changes the AI\'s top_k'
     text += '\n                   (higher top_k = bigger memorized vocabulary). Default is 80.'
     text += '\n  "/remember XXX"   Commit something important to the AI\'s memory for that session.'
+    text += '\n  "/context"        Rewrites everything your AI has currently committed to memory.'
     return text
 
 
@@ -156,7 +157,8 @@ def play_aidungeon_2():
     print(starter)
 
     while True:
-        story_manager.story = None
+        if story_manager.story != None:
+            story_manager.story = None
 
         while story_manager.story is None: 
             print("\n\n")
@@ -363,15 +365,22 @@ def play_aidungeon_2():
                         playsound('ping.mp3')
 
                     continue
+
+                elif command == "context":
+                    console_print("Current story context: \n" + story_manager.get_context() + "\n")
+                    new_context = input("Enter a new context describing the general status of your character and story: ")
+                    story_manager.set_context(new_context)
+                    console_print("Story context updated.\n")
+
                 else:
                     console_print(f"Unknown command: {command}")
 
             else:
                 if action == "":
-                    action = ""
+                    action = "\n> \n"
                     
                 elif action[0] == '!':
-                    action = "\n" + action[1:].replace("\\n", "\n") + "\n"
+                    action = "\n> \n" + action[1:].replace("\\n", "\n") + "\n"
 
                 elif action[0] != '"':
                     action = action.strip()
@@ -433,7 +442,7 @@ def play_aidungeon_2():
                 else:
                     console_print(result)
                 if ping:
-                    playsound('ping.mp3', block=False)
+                    playsound('ping.mp3')
                 story_manager.generator.generate_num = story_manager.generator.default_gen_num
 
 
