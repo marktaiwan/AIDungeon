@@ -2,6 +2,7 @@ import json
 import os
 import subprocess
 import uuid
+import copy
 from subprocess import Popen
 
 from story.utils import *
@@ -210,7 +211,7 @@ class UnconstrainedStoryManager(StoryManager):
         self.story.context = context
 
     def get_context(self):
-        return self.story.context		
+        return self.story.context
 
 
 class ConstrainedStoryManager(StoryManager):
