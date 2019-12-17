@@ -59,8 +59,8 @@ def player_died(text):
         "you('re| are) (dead|killed|slain|no more|nonexistent)",
         "you (die|pass away|perish|suffocate|drown|bleed out)",
         "you('ve| have) (died|perished|suffocated|drowned|been (killed|slain))",
-        "you (\w* )?(yourself )?to death",
-        "you (\w* )*(collapse|bleed out|chok(e|ed|ing)|drown|dissolve) (\w* )*and (die(|d)|pass away|cease to exist|(\w* )+killed)",
+        "you (\\w* )?(yourself )?to death",
+        "you (\\w* )*(collapse|bleed out|chok(e|ed|ing)|drown|dissolve) (\\w* )*and (die(|d)|pass away|cease to exist|(\\w* )+killed)",
     ]
     return any(re.search(regexp, lower_text) for regexp in you_dead_regexps)
 
@@ -68,12 +68,12 @@ def player_died(text):
 def player_won(text):
     lower_text = text.lower()
     won_phrases = [
-        "you ((\w* )*and |)live happily ever after",
-        "you ((\w* )*and |)live (forever|eternally|for eternity)",
-        "you ((\w* )*and |)(are|become|turn into) ((a|now) )?(deity|god|immortal)",
-        "you ((\w* )*and |)((go|get) (in)?to|arrive (at|in)) (heaven|paradise)",
-        "you ((\w* )*and |)celebrate your (victory|triumph)",
-        "you ((\w* )*and |)retire",
+        "you ((\\w* )*and |)live happily ever after",
+        "you ((\\w* )*and |)live (forever|eternally|for eternity)",
+        "you ((\\w* )*and |)(are|become|turn into) ((a|now) )?(deity|god|immortal)",
+        "you ((\\w* )*and |)((go|get) (in)?to|arrive (at|in)) (heaven|paradise)",
+        "you ((\\w* )*and |)celebrate your (victory|triumph)",
+        "you ((\\w* )*and |)retire",
     ]
     return any(re.search(regexp, lower_text) for regexp in won_phrases)
 
@@ -107,7 +107,7 @@ def split_first_sentence(text):
 
 def cut_trailing_action(text):
     lines = text.split("\n")
-    last_para = re.findall(".+?(?:\.{1,3}|[!\?]|$)", lines[-1])
+    last_para = re.findall(".+?(?:\\.{1,3}|[!\\?]|$)", lines[-1])
     if len(last_para) < 1:
         return ""
     last_line = last_para[-1].rstrip()
