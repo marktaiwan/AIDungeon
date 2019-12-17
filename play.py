@@ -493,7 +493,7 @@ def play_aidungeon_2():
                         
                     action = action[0].lower() + action[1:]
 
-                    if action[-1] not in [".", "?", "!"]:
+                    if action[-1] not in [".", "?", "!", "\""]:
                         action = action + "."
 
                     action = first_to_second_person(action)
