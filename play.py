@@ -242,7 +242,7 @@ def play_aidungeon_2():
                 story_manager.story.save_to_storage(overwrite=True, silent=True)
 
             sys.stdin.flush()
-            action = input("> ").strip()
+            action = input("\n> ").strip()
             if len(action) > 0 and action[0] == "/":
                 split = action[1:].split(" ")  # removes preceding slash
                 command = split[0].lower()
