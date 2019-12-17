@@ -235,7 +235,7 @@ def play_aidungeon_2():
                 load_ID = input("What is the ID of the saved game? ")
                 result = story_manager.load_new_story(load_ID)
                 print("\nLoading Game...\n")
-                print(result)
+                console_print(result)
 
         while True:
             if autosave:
