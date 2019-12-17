@@ -125,6 +125,7 @@ def cut_trailing_action(text):
 
 def cut_trailing_sentence(text):
     text = standardize_punctuation(text)
+    text = text.replace('\n>', '')
     last_punc = max(text.rfind(".")+1, text.rfind("!"), text.rfind("?"))
     if last_punc <= 0:
         last_punc = len(text) - 1
