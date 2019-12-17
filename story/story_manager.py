@@ -150,7 +150,7 @@ class StoryManager:
     def __init__(self, generator):
         self.generator = generator
         self.story = None
-        self.inference_timeout = 120
+        self.inference_timeout = 240
 
     def start_new_story(
         self, story_prompt, context="", game_state=None, upload_story=False
