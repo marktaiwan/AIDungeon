@@ -68,7 +68,8 @@ class GPT2Generator:
         if len(result) == 0:
             return ""
         first_letter_capitalized = result[0].isupper()
-        result = result.replace('."', '".')
+        # result = result.replace('."', '".')
+        result = result.replace("  ", " ")
         result = result.replace("#", "")
         result = result.replace("*", "")
         result = result.replace("\n\n", "\n")
@@ -112,6 +113,7 @@ class GPT2Generator:
         if debug_print:
             print("******DEBUG******")
             print("Prompt is: ", repr(prompt))
+            print("last_prompt is: ", repr(last_prompt))
 
         text = self.generate_raw(prompt)
 
@@ -120,7 +122,7 @@ class GPT2Generator:
             print("******END DEBUG******")
 
         result = text
-        result = self.result_replace(result, re.findall(".+?(?:\\.{1,3}|[!\\?]|$)", last_prompt))
+        result = self.result_replace(result, re.findall(r'.+?(?:(?:\.{1,3}|[!\?])"?|$)', last_prompt))
         if len(result) == 0 and depth < 20:
             print("\nRetrying prompt...\nAttempt {}".format(depth))
             return self.generate(self.cut_down_prompt(prompt), depth=depth+1)

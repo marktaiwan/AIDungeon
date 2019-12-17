@@ -107,7 +107,7 @@ def split_first_sentence(text):
 
 def cut_trailing_action(text):
     lines = text.split("\n")
-    last_para = re.findall(".+?(?:\\.{1,3}|[!\\?]|$)", lines[-1])
+    last_para = re.findall(r'.+?(?:(?:\.{1,3}|[!\?])"?|$)', lines[-1])
     if len(last_para) < 1:
         return ""
     last_line = last_para[-1].rstrip()
@@ -125,8 +125,8 @@ def cut_trailing_action(text):
 
 def cut_trailing_sentence(text):
     text = standardize_punctuation(text)
-    text = text.replace('\n>', '')
-    last_punc = max(text.rfind(".")+1, text.rfind("!"), text.rfind("?"))
+    text = text.replace('\n>', '\n')
+    last_punc = max(text.rfind(".")+1, text.rfind("!"), text.rfind("?"), text.rfind("\""))
     if last_punc <= 0:
         last_punc = len(text) - 1
 
