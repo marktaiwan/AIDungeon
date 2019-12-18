@@ -51,7 +51,7 @@ class GPT2Generator:
         prompt = prompt.replace("#", "")
         prompt = prompt.replace("*", "")
         prompt = prompt.replace("\n\n", "\n")
-        prompt = re.sub(r"(?<=\w)\.\.(?:\s|$)", ".", prompt)
+        prompt = re.sub(r"(?<=\w)\.\.(?=\s|$)", ".", prompt)
         prompt = prompt.rstrip(" ")
         # prompt = second_to_first_person(prompt)
 
@@ -61,14 +61,16 @@ class GPT2Generator:
 
     def result_replace(self, result, actions):
         # print("\n\nBEFORE RESULT_REPLACE:")
-        # print(repr(result))
+        # print("result: ", repr(result))
+        # print("actions: ", repr(actions))
         
+        result = re.sub(r"(\n|^)>.*(?=\n|$)", r"\1", result)
         # result = result.replace('."', '".')
         result = result.replace("  ", " ")
         result = result.replace("#", "")
         result = result.replace("*", "")
         result = result.replace("\n\n", "\n")
-        result = re.sub(r"(?<=\w)\.\.(?:\s|$)", ".", result)
+        result = re.sub(r"(?<=\w)\.\.(?=\s|$)", ".", result)
         # result = first_to_second_person(result)
         result = cut_trailing_sentence(result)
         for sentence in actions:
@@ -110,11 +112,11 @@ class GPT2Generator:
         debug_print = False
         prompt = self.prompt_replace(prompt)
         last_prompt = prompt[prompt.rfind(">")+2:] if prompt.rfind(">") > -1 else prompt
+        # print("last_prompt is: ", repr(last_prompt))
 
         if debug_print:
             print("******DEBUG******")
             print("Prompt is: ", repr(prompt))
-            print("last_prompt is: ", repr(last_prompt))
 
         text = self.generate_raw(prompt)
 
@@ -127,7 +129,9 @@ class GPT2Generator:
         if len(result) == 0 and depth < 20:
             print("\nRetrying prompt...\nAttempt {}".format(depth))
             return self.generate(self.cut_down_prompt(prompt), depth=depth+1)
-        elif result.count(".") < 2 and depth < 20:
+        elif (
+            result.count(".") + result.count("?") + result.count("!")
+        ) < 2 and depth < 20:
             print("\nRetrying prompt...\nAttempt {}".format(depth))
             return self.generate(prompt, depth=depth+1)
 

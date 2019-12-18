@@ -418,7 +418,7 @@ def play_aidungeon_2():
                     print("Do you wish to change it?")
                     print("0) Yes\n1) No\n")
                     choice = get_num_options(2)
-                    if chocie == 1:
+                    if choice == 0:
                         new_context = input("Enter a new context describing the general status of your character and story:\n")
                         story_manager.set_context(new_context)
                         console_print("Story context updated.\n")
