@@ -108,7 +108,7 @@ class GPT2Generator:
 
         debug_print = False
         prompt = self.prompt_replace(prompt)
-        last_prompt = prompt[prompt.rfind(">")+2:] if prompt.rfind(">") >= -1 else prompt
+        last_prompt = prompt[prompt.rfind(">")+2:] if prompt.rfind(">") > -1 else prompt
 
         if debug_print:
             print("******DEBUG******")
