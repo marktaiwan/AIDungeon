@@ -329,16 +329,66 @@ def play_aidungeon_2():
                         console_print(story_manager.story.story_start)
                     continue
 
-                elif command == "alter": 
+                elif command == "alter":
                     if len(story_manager.story.results) is 0: 
                         console_print("There's no results to alter.\n") 
-                        continue 
-     
-                    console_print("\nThe AI thinks this was what happened:\n") 
-                    print(story_manager.story.results[-1]) 
-                    result = input("\nWhat actually happened was (use \\n for new line):\n\n") 
-                    result = result.replace("\\n", "\n") 
-                    story_manager.story.results[-1] = result 
+                        continue
+
+                    try:
+                        last_result = story_manager.story.results[-1]
+                        sentences = last_result.split(". ")
+
+                        if sentences[-1] == "":
+                            del sentences[-1]
+
+                        for i in range(len(sentences)):
+                            sentences[i] = sentences[i].strip()
+
+                        console_print("The AI thinks this was what happened:\n" + last_result + "\n")
+                        console_print("0) Remove a sentence\n1) Edit a sentence\n2) Append a new sentence\n3) Rewrite everything from scratch\n4) Cancel\n")
+                        choice = get_num_options(5)
+
+                        if choice == 0:
+                            console_print("Pick a sentence to remove:\n")
+                            for i in range(len(sentences)):
+                                console_print(str(i) + ") " + sentences[i])
+                            choice = get_num_options(len(sentences))
+                            del sentences[choice]
+                        elif choice == 1:
+                            console_print("Pick a sentence to edit:\n")
+                            for i in range(len(sentences)):
+                                console_print(str(i) + ") " + sentences[i])
+                            choice = get_num_options(len(sentences))
+                            console_print(sentences[choice])
+                            sentences[choice] = input("\nWrite the new sentence:\n")
+                        elif choice == 2:
+                            sentences.append(input("Write a new sentence:\n"))
+                        elif choice == 3:
+                            last_result = input("\nWhat actually happened was (use \\n for new line):\n\n")
+                            last_result = last_result.replace("\\n", "\n")
+                            story_manager.story.results[-1] = last_result
+                            console_print("Story altered.\n")
+                            continue
+                        else:
+                            console_print("Cancelled.\n")
+                            continue
+
+                        last_result = ""
+                        for i in range(len(sentences)):
+                            if sentences[i] == "":
+                                continue
+                            if sentences[i][-1] == ".":
+                                sentences[i] = sentences[i] + " "
+                            elif sentences[i][-1] != " ":
+                                sentences[i] = sentences[i] + ". "
+                            last_result = last_result + sentences[i]
+                        last_result = last_result.strip()
+                        story_manager.story.results[-1] = last_result
+                        console_print("Story altered.\n")
+
+                    except:
+                        console_print("Something went wrong, cancelling.")
+                        pass
 
                 elif command == "timeout":
 
@@ -420,6 +470,7 @@ def play_aidungeon_2():
                     choice = get_num_options(2)
                     if choice == 0:
                         new_context = input("Enter a new context describing the general status of your character and story:\n")
+                        new_context = new_context.replace("\\n", "\n")
                         story_manager.set_context(new_context)
                         console_print("Story context updated.\n")
 
