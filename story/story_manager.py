@@ -20,7 +20,6 @@ class Story:
         self.story_start = story_start
         self.context = context
         self.rating = -1
-        self.upload_story = upload_story
 
         # list of actions. First action is the prompt length should always equal that of story blocks
         self.actions = []
