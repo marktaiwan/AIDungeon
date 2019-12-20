@@ -160,7 +160,7 @@ class StoryManager:
         if not os.path.exists(save_path):
             return None
 
-        file_name = "story" + story_id + (".json" if self.encryptor is None else ".bin")
+        file_name = story_id + (".json" if self.encryptor is None else ".bin")
         if self.cloud:
             cmd = "gsutil cp gs://aidungeonstories/" + file_name + " " + save_path
             os.system(cmd)
@@ -206,11 +206,11 @@ class StoryManager:
         if self.encryptor is not None:
             story_encoded = story_json.encode()
             story_encrypted = self.encryptor.encrypt(story_encoded)
-            file_name = "story" + str(story_id) + ".bin"
+            file_name = str(story_id) + ".bin"
             with open(os.path.join(save_path, file_name), "wb") as sf:
                 sf.write(base64.urlsafe_b64encode(self.salt) + story_encrypted)
         else:
-            file_name = "story" + str(story_id) + ".json"
+            file_name = str(story_id) + ".json"
             with open(os.path.join(save_path, file_name), "w") as sf:
                 sf.write(story_json)
 
