@@ -192,17 +192,21 @@ class StoryManager:
         else:
             return None
 
-    def save_story(self):
-        story_id = str(uuid.uuid1())
-        self.story.uuid = story_id
-        story_dict = self.story.to_dict()
+    def save_story(self, overwrite=False):
+        if self.story.uuid is None:
+            self.story.uuid = str(uuid.uuid1())
+
+        ref = self.story if overwrite else copy.copy(self.story)
+
+        story_id = ref.uuid if overwrite else str(uuid.uuid1())
+        story_dict = ref.to_dict()
         story_dict["top_p"] = self.generator.top_p
         story_dict["temp"] = self.generator.temp
 
         if not os.path.exists(save_path):
             os.makedirs(save_path)
 
-        story_json = self.story.to_json()
+        story_json = ref.to_json()
         if self.encryptor is not None:
             story_encoded = story_json.encode()
             story_encrypted = self.encryptor.encrypt(story_encoded)

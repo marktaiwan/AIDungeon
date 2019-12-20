@@ -283,7 +283,7 @@ def play_aidungeon_2():
 
         while True:
             if autosave:
-                story_manager.story.save_to_storage(overwrite=True, silent=True)
+                story_manager.save_story(overwrite=True)
 
             sys.stdin.flush()
             action = input("\n> ").strip()
@@ -394,7 +394,12 @@ def play_aidungeon_2():
 
                 elif command == "save":
                     if upload_story:
-                        save_id = story_manager.save_story()
+                        print("Save to new file, or overwrite the current file?") 
+                        print("0) Save as new\n1) Save to current file\n")
+                        choice = get_num_options(2)
+                        overwrite_save = (choice == 1)
+
+                        save_id = story_manager.save_story(overwrite=overwrite_save)
                         console_print("Game saved.")
                         console_print(f"To load the game, type 'load' and enter the following ID: {save_id}")
                     else:
