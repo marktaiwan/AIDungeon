@@ -276,6 +276,7 @@ def play_aidungeon_2():
                             console_print(result)
                         else:
                             console_print("File not found, or invalid password")
+                            story_manager.encryptor = None
                 else:
                     console_print(result)
 
