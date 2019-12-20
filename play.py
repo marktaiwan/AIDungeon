@@ -185,7 +185,8 @@ def instructions():
     text += '\n  "/retry"          Reverts the last action and tries again with the same action.'
     text += '\n  "/alter"          Edit the most recent AI response'
     text += '\n  "/quit"           Quits the game and saves'
-    text += '\n  "/restart"        Starts a new game and saves your current one'
+    text += '\n  "/reset"          Starts a new game and saves your current one'
+    text += '\n  "/restart"        Starts the game from beginning with same settings'
     text += '\n  "/autosave"       Toggle autosave on and off. Default is off'
     text += '\n  "/cloud off/on"   Turns off and on cloud saving when you use the "save" command'
     text += '\n  "/saving off/on"  Turns off and on saving'
@@ -349,6 +350,7 @@ def play_aidungeon_2():
 
                 elif command == "stats":
                     text = "saving is set to:      " + str(upload_story)
+                    text += "\ncloud saving is set to:" + str(story_manager.cloud)
                     text += "\nencryption is set to:  " + str(story_manager.has_encryption())
                     text += "\nautosaving is set to:  " + str(autosave)
                     text += "\nping is set to:        " + str(ping)
@@ -674,8 +676,20 @@ def play_aidungeon_2():
 
                 if player_won(result):
                     console_print(result + "\n CONGRATS YOU WIN")
-                    # story_manager.story.get_rating()
-                    break
+                    console_print("\nOptions:")
+                    console_print("0) Start a new game")
+                    console_print(
+                        "1) \"I'm not done yet!\" (If you didn't actually win) "
+                    )
+                    console_print("Which do you choose? ")
+                    choice = get_num_options(2)
+                    if choice == 0:
+                        # story_manager.story.get_rating()
+                        break
+                    else:
+                        console_print("Sorry about that...where were we?")
+                        console_print(result)
+
                 elif player_died(result):
                     console_print(result)
                     console_print("YOU DIED. GAME OVER")
