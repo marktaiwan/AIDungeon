@@ -84,11 +84,18 @@ def remove_profanity(text):
 
 def cut_trailing_quotes(text):
     num_quotes = text.count('"')
-    if num_quotes % 2 is 0:
+    if num_quotes % 2 == 0:
         return text
     else:
         final_ind = text.rfind('"')
         return text[:final_ind]
+
+def fix_trailing_quotes(text):
+    num_quotes = text.count('"')
+    if num_quotes % 2 == 0:
+        return text
+    else:
+        return text + '"'
 
 
 def split_first_sentence(text):
@@ -126,12 +133,7 @@ def cut_trailing_action(text):
 
 def cut_trailing_sentence(text):
     text = standardize_punctuation(text)
-
-    # print("before cut_trailing_sentence: ", repr(text))
-    text = cut_trailing_quotes(text)
-    # print("after cut_trailing_quotes: ", repr(text))
-
-    last_punc = max(text.rfind("."), text.rfind("!"), text.rfind("?"), text.rfind("\""))
+    last_punc = max(text.rfind("."), text.rfind("!"), text.rfind("?"))
     if last_punc <= 0:
         last_punc = len(text) - 1
 
@@ -149,8 +151,8 @@ def cut_trailing_sentence(text):
 
     text = text[:last_punc+1]
 
+    text = fix_trailing_quotes(text)
     text = cut_trailing_action(text)
-    # print("after cut_trailing_action: ", repr(text))
     return text
 
 

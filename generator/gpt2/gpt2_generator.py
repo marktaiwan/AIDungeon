@@ -47,7 +47,6 @@ class GPT2Generator:
     def prompt_replace(self, prompt):
         # print("\n\nBEFORE PROMPT_REPLACE:")
         # print(repr(prompt))
-        prompt = prompt.replace('."', '".')
         prompt = prompt.replace("#", "")
         prompt = prompt.replace("*", "")
         prompt = prompt.replace("\n\n", "\n")
@@ -159,7 +158,11 @@ class GPT2Generator:
         )
         
     def change_temp(self, t):
+        changed = t != self.temp
         self.temp = t
+        return changed
         
     def change_top_p(self, t):
+        changed = t != self.top_p
         self.top_p = t
+        return changed
