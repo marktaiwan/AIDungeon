@@ -216,7 +216,7 @@ def play_aidungeon_2():
         + "ability to save games."
     )
 
-    upload_story = False
+    upload_story = True
     ping = True
     autosave = False
 
@@ -284,7 +284,7 @@ def play_aidungeon_2():
 
         while True:
             if autosave:
-                story_manager.save_story(overwrite=True)
+                story_manager.save_story()
 
             sys.stdin.flush()
             action = input("\n> ").strip()

@@ -192,7 +192,7 @@ class StoryManager:
         else:
             return None
 
-    def save_story(self, overwrite=False):
+    def save_story(self, overwrite=True):
         if self.story.uuid is None:
             self.story.uuid = str(uuid.uuid1())
 
