@@ -347,9 +347,10 @@ def play_aidungeon_2():
                 elif command == "help":
                     console_print(instructions())
 
-                elif command == "showstats":
+                elif command == "stats":
                     text = "saving is set to:      " + str(upload_story)
                     text += "\nencryption is set to:  " + str(story_manager.has_encryption())
+                    text += "\nautosaving is set to:  " + str(autosave)
                     text += "\nping is set to:        " + str(ping)
                     text += "\ncensor is set to:      " + str(generator.censor)
                     text += "\n"
