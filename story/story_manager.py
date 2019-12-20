@@ -218,6 +218,11 @@ class StoryManager:
             with open(os.path.join(save_path, file_name), "w") as sf:
                 sf.write(story_json)
 
+            transcript_name = str(story_id) + ".txt"
+            transcript = str(ref)
+            with open(os.path.join(save_path, transcript_name), "w") as sf:
+                sf.write(transcript)
+
         FNULL = open(os.devnull, "w")
         if self.cloud:
             p = Popen(
