@@ -556,9 +556,8 @@ def play_aidungeon_2():
 
                 elif action[0] != '"':
                     action = action.strip()
-                    action = action[0].lower() + action[1:]
                     if not action.lower().startswith("you ") and not action.lower().startswith("i "):
-                        action = "You " + action
+                        action = "you " + action
 
                     if action[-1] not in [".", "?", "!", "\""]:
                         action = action + "."
