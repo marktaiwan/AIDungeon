@@ -108,6 +108,8 @@ class GPT2Generator:
 
     def generate(self, prompt, options=None, seed=1, depth=1):
 
+        if depth > 1:
+            print("\nRetrying prompt...\nAttempt {}".format(depth - 1))
         debug_print = False
         prompt = self.prompt_replace(prompt)
         last_prompt = prompt[prompt.rfind(">")+2:] if prompt.rfind(">") > -1 else prompt
@@ -126,12 +128,10 @@ class GPT2Generator:
         result = text
         result = self.result_replace(result, re.findall(r'.+?(?:(?:\.{1,3}|[!\?])"?|$)', last_prompt))
         if len(result) == 0 and depth < 20:
-            print("\nRetrying prompt...\nAttempt {}".format(depth))
             return self.generate(self.cut_down_prompt(prompt), depth=depth+1)
         elif (
             result.count(".") + result.count("?") + result.count("!")
         ) < 2 and depth < 20:
-            print("\nRetrying prompt...\nAttempt {}".format(depth))
             return self.generate(prompt, depth=depth+1)
 
         return result
