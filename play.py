@@ -281,7 +281,7 @@ def play_aidungeon_2():
                             result = story_manager.load_from_storage(load_ID)
                             if result is not None:
                                 print('encryption set (disable with /encrypt)')
-                                print(result)
+                                console_print(result)
                 else:
                     console_print(result)
 
