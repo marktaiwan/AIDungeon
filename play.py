@@ -552,7 +552,7 @@ def play_aidungeon_2():
                     action = ""
                     
                 elif action[0] == '!':
-                    action = "\n" + action[1:].replace("\\n", "\n") + "\n"
+                    action = action[1:].replace("\\n", "\n")
 
                 elif action[0] != '"':
                     action = action.strip()
@@ -564,8 +564,9 @@ def play_aidungeon_2():
                         action = action + "."
 
                     action = first_to_second_person(action)
+                    action = "> " + action
 
-                    action = "\n> " + action + "\n"
+                action = "\n" + action + "\n"
 
                 if "say" in action or "ask" in action or "\"" in action:
                     story_manager.generator.generate_num = 120
