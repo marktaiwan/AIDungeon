@@ -205,6 +205,7 @@ def instructions():
     text += '\n  "/temp #.#"       Changes the AI\'s temperature'
     text += '\n                    (higher temperature = less focused). Default is 0.4.'
     text += '\n  "/top ##"         Changes the AI\'s top_p. Default is 0.9.'
+    text += '\n  "/raw off/on"     Changes whether to feed the AI raw text instead of CYOA (default off)'
     text += '\n  "/remember XXX"   Commit something important to the AI\'s memory for that session.'
     text += '\n  "/context"        Edit what your AI has currently committed to memory.'
     return text
@@ -378,6 +379,7 @@ def play_aidungeon_2():
                     text += "\ntemperature is set to: " + str(story_manager.generator.temp)
                     text += "\ntop_p is set to:       " + str(story_manager.generator.top_p)
                     text += "\ncurrent model is:      " + story_manager.generator.model_name
+                    text += "\nraw is set to:         " + str(story_manager.generator.raw)
                     print(text)
 
                 elif command == "autosave": 
@@ -489,6 +491,24 @@ def play_aidungeon_2():
                         except ValueError:
                             console_print("Failed to set top_p. Example usage: /top 0.9")
                             continue
+
+                elif command == "raw":
+                    if len(args) == 0:
+                        console_print("Raw input is " + ("enabled." if raw else "disabled."))
+                    elif args[0] == "off":
+                        if not story_manager.generator.raw:
+                            console_print("Raw input is already disabled.")
+                        else:
+                            story_manager.generator.change_raw(False)
+                            console_print("Raw input is now disabled.")
+                    elif args[0] == "on":
+                        if story_manager.generator.raw:
+                            console_print("Raw input is already enabled.")
+                        else:
+                            story_manager.generator.change_raw(True)
+                            console_print("Raw input is now enabled.")
+                    else:
+                        console_print(f"Invalid argument: {args[0]}")
                 
                 elif command == 'remember':
                     if len(args) == 0:
@@ -560,27 +580,29 @@ def play_aidungeon_2():
                     console_print(f"Unknown command: {command}")
 
             else:
-                if action == "":
-                    action = ""
-                    
-                elif action[0] == '!':
-                    action = action[1:].replace("\\n", "\n")
+                if not story_manager.generator.raw:
+                    if action == "":
+                        action = ""
 
-                elif action[0] != '"':
-                    action = action.strip()
-                    if not action.lower().startswith("you ") and not action.lower().startswith("i "):
-                        action = "you " + action
+                    elif action[0] == '!':
+                        action = action[1:].replace("\\n", "\n")
 
-                    if action[-1] not in [".", "?", "!", "\""]:
-                        action = action + "."
+                    elif action[0] != '"':
+                        action = action.strip()
+                        if not action.lower().startswith("you ") and not action.lower().startswith("i "):
+                            action = "you " + action
 
-                    action = first_to_second_person(action)
-                    action = "> " + action
+                        if action[-1] not in [".", "?", "!", "\""]:
+                            action = action + "."
 
-                action = "\n" + action + "\n"
+                        action = first_to_second_person(action)
 
-                if "say" in action or "ask" in action or "\"" in action:
-                    story_manager.generator.generate_num = 120
+                        action = "> " + action
+
+                    action = "\n" + action + "\n"
+
+                    if "say" in action or "ask" in action or "\"" in action:
+                        story_manager.generator.generate_num = 120
                     
                 try:
                     result = "\n" + story_manager.act_with_timeout(action)
