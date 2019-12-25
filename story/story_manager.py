@@ -148,7 +148,7 @@ class StoryManager:
         return str(story)
 
     def load_salt(self, story_id):
-        file_name = "story" + story_id + ".bin"
+        file_name = story_id + ".bin"
         exists = os.path.isfile(os.path.join(save_path, file_name))
         if exists:
             with open(os.path.join(save_path, file_name), "rb") as fp:
