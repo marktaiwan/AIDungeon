@@ -17,7 +17,7 @@ save_path = "./saves/"
 
 class Story:
     def __init__(
-        self, story_start, context="", seed=None, game_state=None
+        self, story_start, context="", seed=None, game_state=None, raw=False
     ):
         self.story_start = story_start
         self.context = context
@@ -34,6 +34,8 @@ class Story:
         self.choices = []
         self.possible_action_results = None
         self.uuid = None
+
+        self.raw = raw
 
         if game_state is None:
             game_state = dict()
@@ -80,9 +82,10 @@ class Story:
 
     def __str__(self):
         story_list = [self.story_start]
+        delimiter = "" if self.raw else "\n"
         for i in range(len(self.results)):
-            story_list.append("\n" + self.actions[i])
-            story_list.append("\n" + self.results[i])
+            story_list.append(delimiter + self.actions[i])
+            story_list.append(delimiter + self.results[i])
 
         return "".join(story_list)
 
@@ -127,7 +130,7 @@ class StoryManager:
         atexit.register(self.print_save)
 
     def start_new_story(
-        self, story_prompt, context="", game_state=None, upload_story=False
+        self, story_prompt, context="", game_state=None, upload_story=False, raw=False
     ):
         self.upload_story = upload_story
         block = self.generator.generate(context + story_prompt)
@@ -135,7 +138,8 @@ class StoryManager:
         self.story = Story(
             context + story_prompt + block,
             context=context,
-            game_state=game_state
+            game_state=game_state,
+            raw=raw
         )
         return str(self.story)
 
@@ -200,6 +204,7 @@ class StoryManager:
                 changed = changed or self.generator.change_temp(game["temp"])
             if "raw" in game.keys():
                 self.generator.change_raw(game["raw"])
+                self.story.raw = game["raw"]
             if changed:
                 console_print("Please wait while the AI model is regenerated...")
                 self.generator.gen_output()

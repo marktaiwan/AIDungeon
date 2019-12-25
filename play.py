@@ -275,7 +275,7 @@ def play_aidungeon_2():
                 print("\nGenerating story...")
                 story_manager.generator.generate_num = 120
                 story_manager.start_new_story(
-                    prompt, context=context, upload_story=upload_story
+                    prompt, context=context, upload_story=upload_story, raw=story_manager.generator.raw
                 )
                 print("\n")
                 console_print(str(story_manager.story))
@@ -651,6 +651,10 @@ def play_aidungeon_2():
                     else:
                         console_print("Sorry about that...where were we?")
                         console_print(result)
+
+                elif story_manager.generator.raw:
+                    os.system("cls")
+                    console_print(str(story_manager.story))
 
                 else:
                     console_print(result)
