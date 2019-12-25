@@ -219,7 +219,7 @@ def play_aidungeon_2():
     )
 
     upload_story = True
-    ping = False
+    ping = True
     generator = None
     autosave = False
     story_manager = UnconstrainedStoryManager(generator, upload_story=upload_story, cloud=False)

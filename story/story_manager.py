@@ -223,7 +223,7 @@ class StoryManager:
         if not os.path.exists(save_path):
             os.makedirs(save_path)
 
-        story_json = ref.to_json()
+        story_json = json.dumps(story_dict, indent=4)
         if self.encryptor is not None:
             story_encoded = story_json.encode()
             story_encrypted = self.encryptor.encrypt(story_encoded)
