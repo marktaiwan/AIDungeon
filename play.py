@@ -498,22 +498,10 @@ def play_aidungeon_2():
                             continue
 
                 elif command == "raw":
-                    if len(args) == 0:
-                        console_print("Raw input is " + ("enabled." if story_manager.generator.raw else "disabled."))
-                    elif args[0] == "off":
-                        if not story_manager.generator.raw:
-                            console_print("Raw input is already disabled.")
-                        else:
-                            story_manager.generator.change_raw(False)
-                            console_print("Raw input is now disabled.")
-                    elif args[0] == "on":
-                        if story_manager.generator.raw:
-                            console_print("Raw input is already enabled.")
-                        else:
-                            story_manager.generator.change_raw(True)
-                            console_print("Raw input is now enabled.")
-                    else:
-                        console_print(f"Invalid argument: {args[0]}")
+                    raw_mode = not story_manager.generator.raw
+                    story_manager.generator.change_raw(raw_mode)
+                    story_manager.story.raw = raw_mode
+                    console_print("Raw input is " + ("enabled." if story_manager.generator.raw else "disabled."))
                 
                 elif command == 'remember':
                     if len(args) == 0:
