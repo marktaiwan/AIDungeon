@@ -136,10 +136,21 @@ class GPT2Generator:
         return result
         
     def cut_down_prompt(self, prompt):
-        split_prompt = prompt.split(">")
-        expendable_text = ">".join(split_prompt[2:])
-        return split_prompt[0] + (">" + expendable_text if len(expendable_text) > 0 else "")
-        
+        if not self.raw:
+            split_prompt = prompt.split(">")
+            expendable_text = ">".join(split_prompt[2:])
+            return split_prompt[0] + (">" + expendable_text if len(expendable_text) > 0 else "")
+        else:
+            sentences = string_to_sentence_list(prompt.lstrip())
+            sentences = sentences[1:]
+            new_text = ""
+            for i in range(len(sentences)):
+                if sentences[i] == "<break>":
+                    new_text = new_text + "\n"
+                else:
+                    new_text = new_text + " " + sentences[i]
+            return new_text.lstrip()
+
     def gen_output(self):
         models_dir = os.path.expanduser(os.path.expandvars(self.model_dir))
         hparams = model.default_hparams()
