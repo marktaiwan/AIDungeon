@@ -314,15 +314,15 @@ def second_to_first_person(text):
 def string_to_sentence_list(text):
     text = "    " + text + "     "
     text = text.replace("\n", "<stop><break><stop>")
-    text = re.sub("(Mr|St|Mrs|Ms|Dr|Prof|Capt|Cpt|Lt|Mt)(\.)", "\\1<prd>", text)
-    text = re.sub("(Inc|Ltd|Jr|Sr|Co)(\.)([\s\"\',])*(?=[a-z])", "\\1<prd>\\2", text)
-    text = re.sub("(\s)([A-Za-z])(\.)", "\\1\\2<prd>", text)
-    text = re.sub("([A-Za-z0-9])(\.)(?![\s\"\'\.])", "\\1<prd>", text)
-    text = re.sub("<prd>([A-Za-z])(\.)([\s\"\',])*(?=[a-z])", "<prd>\\1<prd>\\3", text)
-    text = re.sub("([\.!\?])([\"\'])([\.,])?", "\\1\\2\\3<stop>", text)
-    text = re.sub("([\.!\?])([^\"\'\.!\?])", "\\1<stop>\\2", text)
+    text = re.sub(r"(Mr|St|Mrs|Ms|Dr|Prof|Capt|Cpt|Lt|Mt)(\.)", "\\1<prd>", text)
+    text = re.sub(r"(Inc|Ltd|Jr|Sr|Co)(\.)([\s\"\',])*(?=[a-z])", "\\1<prd>\\2", text)
+    text = re.sub(r"(\s)([A-Za-z])(\.)", "\\1\\2<prd>", text)
+    text = re.sub(r"([A-Za-z0-9])(\.)(?![\s\"\'\.])", "\\1<prd>", text)
+    text = re.sub(r"<prd>([A-Za-z])(\.)([\s\"\',])*(?=[a-z])", "<prd>\\1<prd>\\3", text)
+    text = re.sub(r"([\.!\?])([\"\'])([\.,])?", "\\1\\2\\3<stop>", text)
+    text = re.sub(r"([\.!\?])([^\"\'\.!\?])", "\\1<stop>\\2", text)
     text = text.replace("<prd>",".")
-    text = re.sub("(<stop>)(\s)*(<stop>)*(\s)*(<stop>)*","<stop>",text)
+    text = re.sub(r"(<stop>)(\s)*(<stop>)*(\s)*(<stop>)*","<stop>",text)
     sentences = text.split("<stop>")
     if sentences[-1] == "":
         del sentences[-1]
