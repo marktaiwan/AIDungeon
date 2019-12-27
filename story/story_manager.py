@@ -82,10 +82,13 @@ class Story:
 
     def __str__(self):
         story_list = [self.story_start]
-        delimiter = "" if self.raw else "\n"
         for i in range(len(self.results)):
-            story_list.append(delimiter + self.actions[i])
-            story_list.append(delimiter + self.results[i])
+            if self.raw:
+                story_list.append(self.actions[i].replace("\n", "\n\n"))
+                story_list.append(self.results[i].replace("\n", "\n\n"))
+            else:
+                story_list.append("\n" + self.actions[i])
+                story_list.append("\n" + self.results[i])
 
         return "".join(story_list)
 
@@ -289,7 +292,7 @@ class UnconstrainedStoryManager(StoryManager):
                 if not action_choice[0].isspace():
                     action_choice = " " + action_choice
             else:
-                action_choice = " "
+                action_choice = ""
         result = self.generate_result(action_choice)
         self.story.add_to_story(action_choice, result)
         return result
