@@ -134,7 +134,7 @@ class GPT2Generator:
             return self.generate(prompt, depth=depth+1)
 
         return result
-        
+
     def cut_down_prompt(self, prompt):
         if not self.raw:
             split_prompt = prompt.split(">")
