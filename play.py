@@ -193,11 +193,11 @@ def instructions():
     text += '\n  "/quit"           Quits the game and saves'
     text += '\n  "/reset"          Starts a new game and saves your current one'
     text += '\n  "/restart"        Starts the game from beginning with same settings'
-    text += '\n  "/autosave"       Toggle autosave on and off. Default is off'
     text += '\n  "/cloud off/on"   Turns off and on cloud saving when you use the "save" command'
     text += '\n  "/saving off/on"  Turns off and on saving'
     text += '\n  "/encrypt"        Turns on encryption when saving and loading'
-    text += '\n  "/save"           Makes a new save of your game and gives you the save ID'
+    text += '\n  "/autosave"       Toggle autosave on and off. Default is off.'
+    text += '\n  "/save [name]"    Save your current game or create a new save if name was supplied'
     text += '\n  "/load"           Asks for a save ID and loads the game if the ID is valid'
     text += '\n  "/print"          Prints a transcript of your adventure'
     text += '\n  "/help"           Prints these instructions again'
@@ -311,9 +311,8 @@ def play_aidungeon_2():
                     story_manager.set_encryption(None)
 
         while True:
-            if autosave:
+            if autosave and upload_story:
                 story_manager.save_story()
-
             sys.stdin.flush()
             action = input("\n> ").strip()
             if len(action) > 0 and action[0] == "/":
@@ -374,6 +373,10 @@ def play_aidungeon_2():
                         story_manager.set_encryption(password, salt)
                         console_print("Updated password for encryption/decryption.")
 
+                elif command == "autosave":
+                    autosave = not autosave
+                    console_print("Autosaving is now turned " + ("on" if autosave else "off"))
+
                 elif command == "help":
                     console_print(instructions())
 
@@ -390,11 +393,6 @@ def play_aidungeon_2():
                     text += "\ncurrent model is:      " + story_manager.generator.model_name
                     text += "\nraw is set to:         " + str(story_manager.generator.raw)
                     print(text)
-
-                elif command == "autosave": 
-                    autosave = not autosave 
-                    console_print("Autosaving is now turned " + ("on" if autosave else "off"))
-
 
                 elif command == "censor":
                     generator.censor = not generator.censor
@@ -430,12 +428,16 @@ def play_aidungeon_2():
 
                 elif command == "save":
                     if upload_story:
-                        print("Save to new file, or overwrite the current file?") 
-                        print("0) Save as new\n1) Save to current file\n")
-                        choice = get_num_options(2)
-                        overwrite_save = (choice == 1)
-
-                        save_id = story_manager.save_story(overwrite=overwrite_save)
+                        if len(args) == 0:
+                            print("Create a new save, or overwrite the current save?")
+                            print("0) New save\n1) Overwrite current save\n")
+                            choice = get_num_options(2)
+                            name = None
+                            overwrite = (choice == 1)
+                        else:
+                            name = args[0]
+                            overwrite = False
+                        save_id = story_manager.save_story(name, overwrite)
                         console_print("Game saved.")
                         console_print(f"To load the game, type 'load' and enter the following ID: {save_id}")
                     else:
