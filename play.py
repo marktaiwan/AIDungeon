@@ -336,32 +336,13 @@ def play_aidungeon_2():
                     exit()
 
                 elif command == "saving":
-                    if len(args) == 0:
-                        console_print("Saving is " + ("enabled." if upload_story else "disabled.") + " Use /saving " +
-                                      ("off" if upload_story else "on") + " to change.")
-                    elif args[0] == "off":
-                        upload_story = False
-                        story_manager.upload_story = False
-                        console_print("Saving turned off.")
-                    elif args[0] == "on":
-                        upload_story = True
-                        story_manager.upload_story = True
-                        console_print("Saving turned on.")
-                    else:
-                        console_print(f"Invalid argument: {args[0]}")
+                    upload_story = not upload_story
+                    story_manager.upload_story = upload_story
+                    console_print("Saving is now turned " + ("on." if upload_story else "off."))
 
                 elif command == "cloud":
-                    if len(args) == 0:
-                        console_print("Cloud saving is " + ("enabled." if story_manager.cloud else "disabled.") + " Use /cloud " +
-                                      ("off" if story_manager.cloud else "on") + " to change.")
-                    elif args[0] == "off":
-                        story_manager.cloud = False
-                        console_print("Cloud saving turned off.")
-                    elif args[0] == "on":
-                        story_manager.cloud = True
-                        console_print("Cloud saving turned on.")
-                    else:
-                        console_print(f"Invalid argument: {args[0]}")
+                    story_manager.cloud = not story_manager.cloud
+                    console_print("Saving is now turned " + ("enabled." if story_manager.cloud else "disabled."))
 
                 elif command == "encrypt":
                     password = getpass.getpass("Enter password (blank to disable encryption): ")
