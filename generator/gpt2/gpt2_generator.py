@@ -3,7 +3,9 @@ import os
 import warnings
 
 import numpy as np
-import tensorflow as tf
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore",category=FutureWarning)
+    import tensorflow as tf
 from generator.gpt2.src import encoder, model, sample
 from story.utils import *
 
