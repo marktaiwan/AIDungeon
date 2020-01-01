@@ -252,7 +252,7 @@ class StoryManager:
                 sf.write(story_json)
 
             transcript_name = str(story_id) + ".txt"
-            transcript = str(ref)
+            transcript = str(saved_story)
             with open(os.path.join(save_path, transcript_name), "w") as sf:
                 sf.write(transcript)
 
