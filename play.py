@@ -514,7 +514,7 @@ def play_aidungeon_2():
                             console_print(last_action)
                             console_print(story_manager.story.results[-1])
                         except FunctionTimedOut:
-                            console_print("That input caused the model to hang (timeout is {}, use infto ## command to change)".format(story_manager.inference_timeout))
+                            console_print("That input caused the model to hang (timeout is {}, use /timeout ## command to change)".format(story_manager.inference_timeout))
                             if ping:
                                 playsound('ping.mp3')
                     except NameError:
