@@ -14,10 +14,6 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
 import base64
 import getpass
-try:
-	import readline
-except ModuleNotFoundError:
-	pass
 
 from banners.bannerRan import *
 
@@ -95,21 +91,7 @@ def select_game():
         choice = get_num_options(len(settings) + 1)
 
         if choice == len(settings):
-
-            console_print(
-                "\n(optional, can be left blank) Enter a prompt that describes who you are and what are your goals. The AI will "
-                "always remember this prompt and will use it for context, ex:\n 'Your name is John Doe. You are a knight in "
-                "the kingdom of Larion. You were sent by the king to track down and slay an evil dragon.'\n"
-            )
-            context = input("Story Context: ").replace("\\n", "\n")
-            if len(context) > 0 and not context.endswith(" "):
-                context = context + " "
-
-            console_print(
-                "\nNow enter a prompt that describes the start of your story. This comes after the Story Context and will give the AI "
-                "a starting point for the story. Unlike the context, the AI will eventually forget this prompt, ex:\n 'You enter the forest searching for the dragon and see' "
-            )
-            prompt = input("Starting Prompt: ").replace("\\n", "\n")
+            context, prompt = get_custom_prompt()
             return True, None, None, None, context, prompt
 
         setting_key = list(settings)[choice]
@@ -129,11 +111,17 @@ def select_game():
 
 
 def get_custom_prompt():
-    context = ""
     console_print(
-        "\nEnter a prompt that describes who you are and the first couple sentences of where you start "
-        "out ex:\n 'You are a knight in the kingdom of Larion. You are hunting the evil dragon who has been "
-        + "terrorizing the kingdom. You enter the forest searching for the dragon and see' "
+        "\n(optional, can be left blank) Enter a prompt that describes who you are and what are your goals. The AI will "
+        "always remember this prompt and will use it for context, ex:\n 'Your name is John Doe. You are a knight in "
+        "the kingdom of Larion. You were sent by the king to track down and slay an evil dragon.'\n"
+    )
+    context = input("Story Context: ")
+    if len(context) > 0 and not context.endswith(" "):
+        context = context + " "
+    console_print(
+        "\nNow enter a prompt that describes the start of your story. This comes after the Story Context and will give the AI "
+        "a starting point for the story. Unlike the context, the AI will eventually forget this prompt, ex:\n 'You enter the forest searching for the dragon and see' "
     )
     prompt = input("Starting Prompt: ")
     return context, prompt
@@ -231,7 +219,7 @@ def play_aidungeon_2():
 
     ranBanner =  bannerRan()
     openingPass = (ranBanner.banner_number)
-        
+
     with open(openingPass, "r", encoding="utf-8") as file:
         starter = file.read()
     print(starter)
@@ -457,9 +445,9 @@ def play_aidungeon_2():
                         except ValueError:
                             console_print("Failed to set timeout. Example usage: /timeout 30")
                             continue
-                    
+
                 elif command == "temp":
-                
+
                     if len(args) != 1:
                         console_print("Failed to set temperature. Example usage: /temp 0.4")
                     else:
@@ -471,9 +459,9 @@ def play_aidungeon_2():
                         except ValueError:
                             console_print("Failed to set temperature. Example usage: /temp 0.4")
                             continue
-                
+
                 elif command == "top":
-                
+
                     if len(args) != 1:
                         console_print("Failed to set top_p. Example usage: /top 0.9")
                     else:
@@ -498,7 +486,7 @@ def play_aidungeon_2():
                     else:
                         story_manager.story.context += "You know " + " ".join(args[0:]) + ". "
                         console_print("You make sure to remember {}.".format(" ".join(action.split(" ")[1:])))
-                    
+
                 elif command == 'retry':
 
                     if len(story_manager.story.actions) is 0:
@@ -587,7 +575,7 @@ def play_aidungeon_2():
                         story_manager.generator.generate_num = 120
                 else:
                     action = action.replace("\\n", "\n")
-                    
+
                 try:
                     result = "\n" + story_manager.act_with_timeout(action)
                 except FunctionTimedOut:

@@ -44,7 +44,7 @@ class GPT2Generator:
         self.saver = tf.train.Saver()
         ckpt = tf.train.latest_checkpoint(os.path.join(self.model_dir, self.model_name))
         self.saver.restore(self.sess, ckpt)
-        
+
     def prompt_replace(self, prompt):
         # print("\n\nBEFORE PROMPT_REPLACE:")
         # print(repr(prompt))
@@ -77,14 +77,9 @@ class GPT2Generator:
             result = result.replace(sentence.strip()+" ", "")
         if len(result) == 0:
             return ""
-        first_letter_capitalized = result[0].isupper()
         if self.censor:
             result = remove_profanity(result)
 
-        if not first_letter_capitalized:
-            result = result[0].lower() + result[1:]
-
-        #
         # print("\n\nAFTER RESULT_REPLACE:")
         # print(repr(result))
 
@@ -168,12 +163,12 @@ class GPT2Generator:
             #top_k=self.top_k,
             top_p=self.top_p,
         )
-        
+
     def change_temp(self, t):
         changed = t != self.temp
         self.temp = t
         return changed
-        
+
     def change_top_p(self, t):
         changed = t != self.top_p
         self.top_p = t

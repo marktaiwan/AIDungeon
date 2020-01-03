@@ -2,10 +2,6 @@
 import re
 from difflib import SequenceMatcher
 
-try:
-	import readline
-except ModuleNotFoundError:
-	pass
 import yaml
 from profanityfilter import ProfanityFilter
 from func_timeout import func_timeout, FunctionTimedOut
@@ -100,20 +96,6 @@ def fix_trailing_quotes(text):
         return text
     else:
         return text + '"'
-
-
-def split_first_sentence(text):
-    first_period = text.find(".")
-    first_exclamation = text.find("!")
-
-    if first_exclamation < first_period and first_exclamation > 0:
-        split_point = first_exclamation + 1
-    elif first_period > 0:
-        split_point = first_period + 1
-    else:
-        split_point = text[0:20]
-
-    return text[0:split_point], text[split_point:]
 
 
 def cut_trailing_action(text):
