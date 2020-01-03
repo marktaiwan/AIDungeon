@@ -51,7 +51,7 @@ class GPT2Generator:
         prompt = prompt.replace("#", "")
         prompt = prompt.replace("*", "")
         prompt = prompt.replace("\n\n", "\n")
-        prompt = re.sub(r"(?<=\w)\.\.(?=\s|$)", ".", prompt)
+        prompt = re.sub(r"(?<=\w)\.\.(?:\s|$)", ".", prompt)
         prompt = prompt.rstrip(" ")
         # prompt = second_to_first_person(prompt)
 
@@ -70,7 +70,7 @@ class GPT2Generator:
         result = result.replace("#", "")
         result = result.replace("*", "")
         result = result.replace("\n\n", "\n")
-        result = re.sub(r"(?<=\w)\.\.(?=\s|$)", ".", result)
+        result = re.sub(r"(?<=\w)\.\.(?:\s|$)", ".", result)
         # result = first_to_second_person(result)
         result = cut_trailing_sentence(result, self.raw)
         for sentence in actions:
