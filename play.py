@@ -368,8 +368,8 @@ def play_aidungeon_2():
                     print(text)
 
                 elif command == "censor":
-                    generator.censor = not generator.censor
-                    console_print("Censor is now turned " + ("on" if generator.censor else "off"))
+                    story_manager.generator.censor = not story_manager.generator.censor
+                    console_print("Censor is now turned " + ("on" if story_manager.generator.censor else "off"))
 
                 elif command == "ping":
                     ping = not ping
