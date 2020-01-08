@@ -407,3 +407,8 @@ def string_edit(text):
             new_text = new_text + sentence_choices[i - (sentences[0:i].count("<break>"))] + " "
     new_text = new_text.strip()
     return new_text
+
+def clear_lines(n):
+    screen_code = "\033[1A[\033[2K"  # up one line, and clear line
+    for _ in range(n):
+        print(screen_code, end="\r")

@@ -19,6 +19,8 @@ from banners.bannerRan import *
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
+import colorama
+colorama.init()
 
 def splash():
     print("0) New Game\n1) Load Game\n")
@@ -601,6 +603,8 @@ def play_aidungeon_2():
 
                         action = "> " + action
 
+                    clear_lines(1)
+                    console_print(action)
                     action = "\n" + action + "\n"
 
                     if "say" in action or "ask" in action or "\"" in action:
